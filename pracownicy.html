@@ -1,0 +1,2301 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System HR - Pracownicy</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #3f51b5;
+            --secondary: #f50057;
+            --light: #f5f5f5;
+            --dark: #212121;
+            --success: #4caf50;
+            --warning: #ff9800;
+            --danger: #f44336;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f0f2f5;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 250px;
+            background-color: var(--dark);
+            color: white;
+            padding: 20px 0;
+        }
+
+        .logo {
+            padding: 15px 20px;
+            font-size: 24px;
+            font-weight: bold;
+            border-bottom: 1px solid #444;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .logo img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .nav-item {
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            color: white;
+            display: block;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background-color: var(--primary);
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .header h1 {
+            color: var(--dark);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        
+        .loading-indicator {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .search-container {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .tab:hover, .tab.active {
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th, .table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .table th {
+            background-color: #f9f9f9;
+            font-weight: 600;
+        }
+
+        .table tbody tr:hover {
+            background-color: #f5f5f5;
+            cursor: pointer;
+        }
+
+        .badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            color: white;
+        }
+
+        .badge-success {
+            background-color: var(--success);
+        }
+
+        .badge-warning {
+            background-color: var(--warning);
+        }
+
+        .badge-danger {
+            background-color: var(--danger);
+        }
+
+        .badge-primary {
+            background-color: var(--primary);
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 300px;
+            margin-bottom: 20px;
+        }
+        
+        .btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background-color: var(--secondary);
+            color: white;
+        }
+        
+        .btn-success {
+            background-color: var(--success);
+            color: white;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+        
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+        
+        .employee-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .employee-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .employee-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .employee-header {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+            position: relative;
+        }
+        
+        .employee-status {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+        
+        .employee-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            overflow: hidden;
+            background-color: #eee;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .employee-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .employee-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .employee-position {
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .employee-department {
+            font-size: 14px;
+            color: var(--primary);
+            font-weight: 500;
+        }
+        
+        .employee-details {
+            padding: 15px;
+        }
+        
+        .employee-detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .employee-detail-row:last-child {
+            border-bottom: none;
+        }
+        
+        .employee-detail-label {
+            color: #666;
+        }
+        
+        .employee-actions {
+            padding: 15px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            width: 600px;
+            max-width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .close {
+            cursor: pointer;
+            font-size: 24px;
+        }
+
+        .employee-profile-header {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .employee-profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            overflow: hidden;
+        }
+        
+        .employee-profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .employee-profile-info {
+            flex: 1;
+        }
+        
+        .employee-profile-name {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .employee-profile-position {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .employee-profile-department {
+            font-size: 16px;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+        
+        .employee-profile-contact {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        .form-control-file {
+            padding: 8px 0;
+        }
+        
+        .checkbox-group {
+            margin-top: 5px;
+        }
+        
+        .chart-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        @media (max-width: 768px) {
+            .chart-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .footer {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: var(--dark);
+            color: white;
+            text-align: center;
+            font-size: 14px;
+        }
+        
+        .footer a {
+            color: white;
+            text-decoration: none;
+        }
+        
+        .footer img {
+            max-width: 120px;
+            height: auto;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="logo">
+                <img src="https://kunimlb.pl/img/podpis_white.png" alt="Kuni Logo">
+            </div>
+            <a href="dashboard.html" class="nav-item">Dashboard</a>
+            <a href="rekrutacja.html" class="nav-item">Rekrutacja</a>
+            <a href="pracownicy.html" class="nav-item active">Pracownicy</a>
+            <a href="oceny.html" class="nav-item">Oceny pracownicze</a>
+            <a href="szkolenia.html" class="nav-item">Szkolenia</a>
+            <a href="analiza.html" class="nav-item">Analiza danych</a>
+            <a href="ustawienia.html" class="nav-item">Ustawienia</a>
+        </div>
+        
+        <div class="main-content">
+            <div class="header">
+                <h1>Zarządzanie pracownikami</h1>
+                <div class="user-profile">
+                    <span>Adrien Agreste</span>
+                    <div class="user-avatar">
+                        <img src="img/aa_20.png" alt="Adrien Agreste" onerror="this.src='https://i.pravatar.cc/150?img=8'">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2>Katalog pracowników</h2>
+                    <button class="btn btn-primary" onclick="showEmployeeModal('new')">Dodaj pracownika</button>
+                </div>
+
+                <div class="search-container">
+                    <input type="text" class="search-input" id="searchInput" placeholder="Szukaj pracownika (imię, nazwisko, stanowisko...)">
+                    <button class="btn btn-primary" onclick="searchEmployees()">Szukaj</button>
+                </div>
+
+                <div class="tabs">
+                    <div class="tab active" data-tab="all">Wszyscy pracownicy</div>
+                    <div class="tab" data-tab="it">IT</div>
+                    <div class="tab" data-tab="marketing">Marketing</div>
+                    <div class="tab" data-tab="sales">Sprzedaż</div>
+                    <div class="tab" data-tab="hr">HR</div>
+                    <div class="tab" data-tab="finance">Finanse</div>
+                </div>
+
+                <div id="employeeList" class="employee-grid">
+                    <!-- Pracownicy będą dodawani przez JavaScript -->
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2>Statystyki zatrudnienia</h2>
+                    <select class="form-control" id="statsTimeframe" onchange="updateStatisticsCharts()">
+                        <option value="current">Stan obecny</option>
+                        <option value="year">Ostatni rok</option>
+                        <option value="quarter">Ostatni kwartał</option>
+                    </select>
+                </div>
+                
+                <div class="chart-row">
+                    <div class="chart-container">
+                        <canvas id="departmentChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="experienceChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="chart-row">
+                    <div class="chart-container">
+                        <canvas id="genderChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="employmentTypeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer">
+                <a href="https://kunimlb.pl" target="_blank">
+                    <img src="https://kunimlb.pl/img/podpis_white.png" alt="Kuni Logo">
+                    <p>Wykonano dla KuniCorp przez KuniMLB</p>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal szczegółów pracownika -->
+    <div class="modal" id="employeeModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Szczegóły pracownika</h2>
+                <span class="close" onclick="closeModal('employeeModal')">&times;</span>
+            </div>
+            <div id="modalContent">
+                <!-- Zawartość modalu będzie generowana dynamicznie -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dane pracowników
+        const employees = [
+            {
+                id: 1,
+                name: 'Adrien Agreste',
+                position: 'Specjalista ds. marketingu',
+                department: 'Marketing',
+                email: 'adrien.agreste@kunicorp.pl',
+                phone: '+48 555 123 456',
+                hireDate: '01.05.2022',
+                status: 'active',
+                avatar: 'img/aa_20.png',
+                details: {
+                    address: 'ul. Paryska 15, 00-001 Warszawa',
+                    birthDate: '12.04.1992',
+                    education: 'Uniwersytet Warszawski, Marketing i Zarządzanie',
+                    languages: ['Polski', 'Angielski', 'Francuski'],
+                    skills: ['SEO', 'Social Media', 'Content Marketing', 'Google Analytics'],
+                    employmentType: 'Umowa o pracę',
+                    salary: '7500 PLN',
+                    supervisor: 'Marinette Kowalska',
+                    notes: 'Specjalizuje się w kampaniach SEO i SEM.'
+                }
+            },
+            {
+                id: 2,
+                name: 'Marinette Kowalska',
+                position: 'Kierownik Marketingu',
+                department: 'Marketing',
+                email: 'marinette.kowalska@kunicorp.pl',
+                phone: '+48 555 234 567',
+                hireDate: '15.03.2021',
+                status: 'active',
+                avatar: 'https://i.pravatar.cc/150?img=3',
+                details: {
+                    address: 'ul. Kwiatowa 7, 00-002 Warszawa',
+                    birthDate: '10.07.1989',
+                    education: 'SGH, Marketing i Zarządzanie',
+                    languages: ['Polski', 'Angielski', 'Chiński'],
+                    skills: ['Zarządzanie zespołem', 'Strategia marketingowa', 'Budżetowanie'],
+                    employmentType: 'Umowa o pracę',
+                    salary: '12000 PLN',
+                    supervisor: 'Gabriel Agreste',
+                    notes: 'Odpowiada za strategię marketingową firmy.'
+                }
+            },
+            {
+                id: 3,
+                name: 'Gabriel Agreste',
+                position: 'Dyrektor Kreatywny',
+                department: 'Marketing',
+                email: 'gabriel.agreste@kunicorp.pl',
+                phone: '+48 555 345 678',
+                hireDate: '05.01.2020',
+                status: 'active',
+                avatar: 'https://i.pravatar.cc/150?img=13',
+                details: {
+                    address: 'ul. Modowa 22, 00-003 Warszawa',
+                    birthDate: '05.06.1975',
+                    education: 'Akademia Sztuk Pięknych w Warszawie',
+                    languages: ['Polski', 'Angielski', 'Francuski', 'Włoski'],
+                    skills: ['Kierownictwo', 'Design', 'Branding', 'UX/UI'],
+                    employmentType: 'Umowa o pracę',
+                    salary: '18000 PLN',
+                    supervisor: 'Zarząd',
+                    notes: 'Odpowiada za wizerunek firmy i strategię kreacji.'
+                }
+            },
+            {
+                id: 4,
+                name: 'Jan Nowak',
+                position: 'Senior Java Developer',
+                department: 'IT',
+                email: 'jan.nowak@kunicorp.pl',
+                phone: '+48 555 456 789',
+                hireDate: '03.06.2021',
+                status: 'active',
+                avatar: 'https://i.pravatar.cc/150?img=11',
+                details: {
+                    address: 'ul. Programistów 42, 00-004 Warszawa',
+                    birthDate: '15.09.1987',
+                    education: 'Politechnika Warszawska, Informatyka',
+                    languages: ['Polski', 'Angielski'],
+                    skills: ['Java', 'Spring', 'Hibernate', 'SQL', 'Docker', 'Kubernetes'],
+                    employmentType: 'B2B',
+                    salary: '170 PLN/h',
+                    supervisor: 'Tomasz Kowalski',
+                    notes: 'Specjalista od backendu i mikroserwisów.'
+                }
+            },
+            {
+                id: 5,
+                name: 'Maria Wiśniewska',
+                position: 'Product Manager',
+                department: 'Produkt',
+                email: 'maria.wisniewska@kunicorp.pl',
+                phone: '+48 555 567 890',
+                hireDate: '12.08.2022',
+                status: 'active',
+                avatar: 'https://i.pravatar.cc/150?img=9',
+                details: {
+                    address: 'ul. Produktowa 33, 00-005 Warszawa',
+                    birthDate: '22.11.1991',
+                    education: 'Uniwersytet SWPS, Psychologia Biznesu',
+                    languages: ['Polski', 'Angielski', 'Niemiecki'],
+                    skills: ['Zarządzanie produktem', 'Agile', 'Scrum', 'User Research'],
+                    employmentType: 'Umowa o pracę',
+                    salary: '14000 PLN',
+                    supervisor: 'Gabriel Agreste',
+                    notes: 'Zarządza rozwojem produktów cyfrowych.'
+                }
+            },
+            {
+                id: 6,
+                name: 'Tomasz Kowalczyk',
+                position: 'Specjalista ds. sprzedaży',
+                department: 'Sprzedaż',
+                email: 'tomasz.kowalczyk@kunicorp.pl',
+                phone: '+48 555 678 901',
+                hireDate: '27.05.2023',
+                status: 'active',
+                avatar: 'https://i.pravatar.cc/150?img=15',
+                details: {
+                    address: 'ul. Handlowa 55, 00-006 Warszawa',
+                    birthDate: '30.03.1988',
+                    education: 'Akademia Leona Koźmińskiego, Marketing i Zarządzanie',
+                    languages: ['Polski', 'Angielski'],
+                    skills: ['Sprzedaż B2B', 'Negocjacje', 'CRM', 'Analiza rynku'],
+                    employmentType: 'Umowa o pracę',
+                    salary: '8500 PLN + prowizja',
+                    supervisor: 'Alicja Malinowska',
+                    notes: 'Obsługuje kluczowych klientów korporacyjnych.'
+                }
+            },
+            {
+                id: 7,
+                name: 'Alya Césaire',
+                position: 'Specjalista Social Media',
+                department: 'Marketing',
+                email: 'alya.cesaire@kunicorp.pl',
+                phone: '+48 555 789 012',
+                hireDate: '28.05.2023',
+                status: 'active',
+                avatar: 'https://i.pravatar.cc/150?img=5',
+                details: {
+                    address: 'ul. Medialna 77, 00-007 Warszawa',
+                    birthDate: '25.05.1994',
+                    education: 'Uniwersytet Warszawski, Dziennikarstwo',
+                    languages: ['Polski', 'Angielski', 'Francuski'],
+                    skills: ['Facebook', 'Instagram', 'TikTok', 'Content Creation', 'Analytics'],
+                    employmentType: 'Umowa o pracę',
+                    salary: '6800 PLN',
+                    supervisor: 'Marinette Kowalska',
+                    notes: 'Odpowiada za komunikację w mediach społecznościowych.'
+                }
+            },
+            {
+                id: 8,
+                name: 'Piotr Wojnowski',
+                position: 'DevOps Engineer',
+                department: 'IT',
+                email: 'piotr.wojnowski@kunicorp.pl',
+                phone: '+48 555 890 123',
+                hireDate: '15.01.2022',
+                status: 'active',
+                avatar: 'https://i.pravatar.cc/150?img=16',
+                details: {
+                    address: 'ul. Serwerowa 99, 00-008 Warszawa',
+                    birthDate: '18.12.1990',
+                    education: 'Politechnika Warszawska, Informatyka',
+                    languages: ['Polski', 'Angielski'],
+                    skills: ['AWS', 'Azure', 'Terraform', 'Kubernetes', 'CI/CD', 'Jenkins'],
+                    employmentType: 'B2B',
+                    salary: '160 PLN/h',
+                    supervisor: 'Tomasz Kowalski',
+                    notes: 'Specjalizuje się w automatyzacji infrastruktury.'
+                }
+            }
+        ];
+
+        // Statystyki do wykresów
+        const statistics = {
+            current: {
+                departments: {
+                    labels: ['IT', 'Marketing', 'Sprzedaż', 'HR', 'Finanse', 'Produkt'],
+                    data: [32, 21, 18, 8, 8, 5]
+                },
+                experience: {
+                    labels: ['< 1 roku', '1-2 lata', '3-5 lat', '5-10 lat', '>10 lat'],
+                    data: [15, 25, 32, 10, 5]
+                },
+                gender: {
+                    labels: ['Mężczyźni', 'Kobiety'],
+                    data: [48, 41]
+                },
+                employmentType: {
+                    labels: ['Umowa o pracę', 'B2B', 'Umowa zlecenie', 'Umowa o dzieło'],
+                    data: [65, 18, 5, 1]
+                }
+            },
+            year: {
+                departments: {
+                    labels: ['IT', 'Marketing', 'Sprzedaż', 'HR', 'Finanse', 'Produkt'],
+                    data: [30, 19, 17, 8, 7, 4]
+                },
+                experience: {
+                    labels: ['< 1 roku', '1-2 lata', '3-5 lat', '5-10 lat', '>10 lat'],
+                    data: [20, 20, 30, 12, 3]
+                },
+                gender: {
+                    labels: ['Mężczyźni', 'Kobiety'],
+                    data: [45, 38]
+                },
+                employmentType: {
+                    labels: ['Umowa o pracę', 'B2B', 'Umowa zlecenie', 'Umowa o dzieło'],
+                    data: [60, 15, 7, 1]
+                }
+            },
+            quarter: {
+                departments: {
+                    labels: ['IT', 'Marketing', 'Sprzedaż', 'HR', 'Finanse', 'Produkt'],
+                    data: [31, 20, 18, 8, 8, 5]
+                },
+                experience: {
+                    labels: ['< 1 roku', '1-2 lata', '3-5 lat', '5-10 lat', '>10 lat'],
+                    data: [17, 22, 32, 10, 4]
+                },
+                gender: {
+                    labels: ['Mężczyźni', 'Kobiety'],
+                    data: [47, 40]
+                },
+                employmentType: {
+                    labels: ['Umowa o pracę', 'B2B', 'Umowa zlecenie', 'Umowa o dzieło'],
+                    data: [63, 17, 6, 1]
+                }
+            }
+        };
+
+        let departmentChart, experienceChart, genderChart, employmentTypeChart;
+        let currentTab = 'all';
+        let searchTerm = '';
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Inicjalizacja tabów
+            initTabs();
+            
+            // Wyświetlenie pracowników
+            displayEmployees();
+            
+            // Inicjalizacja wykresów
+            initCharts();
+            
+            // Listener do wyszukiwania przy naciśnięciu Enter
+            document.getElementById('searchInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    searchEmployees();
+                }
+            });
+        });
+
+        function initTabs() {
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // Usunięcie klasy active z wszystkich tabów
+                    tabs.forEach(t => t.classList.remove('active'));
+                    // Dodanie klasy active do klikniętego taba
+                    this.classList.add('active');
+                    
+                    // Filtrowanie pracowników wg wybranego działu
+                    currentTab = this.getAttribute('data-tab');
+                    displayEmployees();
+                });
+            });
+        }
+
+        function searchEmployees() {
+            searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            displayEmployees();
+        }
+
+        function displayEmployees() {
+            const employeeList = document.getElementById('employeeList');
+            employeeList.innerHTML = ''; // Wyczyść listę
+            
+            // Filtruj pracowników wg działu i wyszukiwania
+            let filteredEmployees = employees.filter(employee => {
+                // Filtrowanie wg działu
+                if (currentTab !== 'all' && employee.department.toLowerCase() !== currentTab) {
+                    return false;
+                }
+                
+                // Filtrowanie wg wyszukiwania
+                if (searchTerm) {
+                    return employee.name.toLowerCase().includes(searchTerm) || 
+                           employee.position.toLowerCase().includes(searchTerm) ||
+                           employee.department.toLowerCase().includes(searchTerm) ||
+                           employee.email.toLowerCase().includes(searchTerm);
+                }
+                
+                return true;
+            });
+            
+            // Jeśli brak wyników
+            if (filteredEmployees.length === 0) {
+                employeeList.innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 20px;">Nie znaleziono pracowników spełniających kryteria wyszukiwania.</p>';
+                return;
+            }
+            
+            // Wyświetl przefiltrowanych pracowników
+            filteredEmployees.forEach(employee => {
+                const employeeCard = document.createElement('div');
+                employeeCard.className = 'employee-card';
+                employeeCard.onclick = () => showEmployeeModal(employee.id);
+                
+                employeeCard.innerHTML = `
+                    <div class="employee-header">
+                        <div class="employee-status">
+                            <span class="badge badge-${employee.status === 'active' ? 'success' : 'warning'}">${employee.status === 'active' ? 'Aktywny' : 'Nieaktywny'}</span>
+                        </div>
+                        <div class="employee-avatar">
+                            <img src="${employee.avatar}" alt="${employee.name}" onerror="this.src='https://i.pravatar.cc/150?img=' + ${employee.id}">
+                        </div>
+                        <div class="employee-name">${employee.name}</div>
+                        <div class="employee-position">${employee.position}</div>
+                        <div class="employee-department">${employee.department}</div>
+                    </div>
+                    <div class="employee-details">
+                        <div class="employee-detail-row">
+                            <span class="employee-detail-label">Email:</span>
+                            <span>${employee.email}</span>
+                        </div>
+                        <div class="employee-detail-row">
+                            <span class="employee-detail-label">Telefon:</span>
+                            <span>${employee.phone}</span>
+                        </div>
+                        <div class="employee-detail-row">
+                            <span class="employee-detail-label">Data zatrudnienia:</span>
+                            <span>${employee.hireDate}</span>
+                        </div>
+                    </div>
+                    <div class="employee-actions">
+                        <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); showEmployeeModal(${employee.id})">Szczegóły</button>
+                        <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); editEmployee(${employee.id})">Edytuj</button>
+                    </div>
+                `;
+                
+                employeeList.appendChild(employeeCard);
+            });
+        }
+
+        function showEmployeeModal(employeeId) {
+            const modal = document.getElementById('employeeModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalContent = document.getElementById('modalContent');
+            
+            if (employeeId === 'new') {
+                // Nowy pracownik
+                modalTitle.textContent = 'Dodaj pracownika';
+                modalContent.innerHTML = getEmployeeFormHTML();
+            } else {
+                // Istniejący pracownik
+                const employee = employees.find(e => e.id === employeeId);
+                modalTitle.textContent = `Profil pracownika: ${employee.name}`;
+                
+                modalContent.innerHTML = `
+                    <div class="employee-profile-header">
+                        <div class="employee-profile-avatar">
+                            <img src="${employee.avatar}" alt="${employee.name}" onerror="this.src='https://i.pravatar.cc/150?img=' + ${employee.id}">
+                        </div>
+                        <div class="employee-profile-info">
+                            <div class="employee-profile-name">${employee.name}</div>
+                            <div class="employee-profile-position">${employee.position}</div>
+                            <div class="employee-profile-department">${employee.department}</div>
+                            <div class="employee-profile-contact">
+                                <button class="btn btn-primary btn-sm" onclick="contactEmployee('email', '${employee.email}')">Email</button>
+                                <button class="btn btn-primary btn-sm" onclick="contactEmployee('phone', '${employee.phone}')">Telefon</button>
+                                <button class="btn btn-secondary btn-sm" onclick="editEmployee(${employee.id})">Edytuj</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tabs">
+                        <div class="tab active" data-modaltab="info">Informacje</div>
+                        <div class="tab" data-modaltab="performance">Wyniki</div>
+                        <div class="tab" data-modaltab="trainings">Szkolenia</div>
+                        <div class="tab" data-modaltab="documents">Dokumenty</div>
+                    </div>
+                    
+                    <div class="tab-content active" id="info-tab">
+                        <h3 style="margin-top: 20px;">Dane osobowe</h3>
+                        <table class="table">
+                            <tr>
+                                <td style="width: 200px;"><strong>Adres:</strong></td>
+                                <td>${employee.details.address}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Data urodzenia:</strong></td>
+                                <td>${employee.details.birthDate}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Wykształcenie:</strong></td>
+                                <td>${employee.details.education}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Języki:</strong></td>
+                                <td>${employee.details.languages.join(', ')}</td>
+                            </tr>
+                        </table>
+                        
+                        <h3 style="margin-top: 20px;">Informacje zawodowe</h3>
+                        <table class="table">
+                            <tr>
+                                <td style="width: 200px;"><strong>Forma zatrudnienia:</strong></td>
+                                <td>${employee.details.employmentType}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Data zatrudnienia:</strong></td>
+                                <td>${employee.hireDate}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Wynagrodzenie:</strong></td>
+                                <td>${employee.details.salary}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Przełożony:</strong></td>
+                                <td>${employee.details.supervisor}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Umiejętności:</strong></td>
+                                <td>${employee.details.skills.join(', ')}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Uwagi:</strong></td>
+                                <td>${employee.details.notes}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    <div class="tab-content" id="performance-tab">
+                        <h3 style="margin-top: 20px;">Oceny pracownicze</h3>
+                        <div style="margin-top: 20px;">
+                            <canvas id="employeePerformanceChart" height="200"></canvas>
+                        </div>
+                        <table class="table" style="margin-top: 20px;">
+                            <thead>
+                                <tr>
+                                    <th>Data oceny</th>
+                                    <th>Wynik</th>
+                                    <th>Oceniający</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>15.05.2025</td>
+                                    <td>4.8/5.0</td>
+                                    <td>Marinette Kowalska</td>
+                                    <td><span class="badge badge-success">Zakończona</span></td>
+                                </tr>
+                                <tr>
+                                    <td>15.02.2025</td>
+                                    <td>4.7/5.0</td>
+                                    <td>Marinette Kowalska</td>
+                                    <td><span class="badge badge-success">Zakończona</span></td>
+                                </tr>
+                                <tr>
+                                    <td>15.11.2024</td>
+                                    <td>4.5/5.0</td>
+                                    <td>Marinette Kowalska</td>
+                                    <td><span class="badge badge-success">Zakończona</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="tab-content" id="trainings-tab">
+                        <h3 style="margin-top: 20px;">Szkolenia</h3>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Nazwa szkolenia</th>
+                                    <th>Data</th>
+                                    <th>Status</th>
+                                    <th>Wynik</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Marketing w mediach społecznościowych</td>
+                                    <td>10.04.2025</td>
+                                    <td><span class="badge badge-success">Ukończone</span></td>
+                                    <td>95%</td>
+                                </tr>
+                                <tr>
+                                    <td>Excel dla zaawansowanych</td>
+                                    <td>15.03.2025</td>
+                                    <td><span class="badge badge-success">Ukończone</span></td>
+                                    <td>88%</td>
+                                </tr>
+                                <tr>
+                                    <td>Wprowadzenie do AI</td>
+                                    <td>15.06.2025</td>
+                                    <td><span class="badge badge-warning">Zaplanowane</span></td>
+                                    <td>-</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                        <div style="margin-top: 20px;">
+                            <canvas id="employeeTrainingChart" height="200"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-content" id="documents-tab">
+                        <h3 style="margin-top: 20px;">Dokumenty</h3>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Nazwa dokumentu</th>
+                                    <th>Data</th>
+                                    <th>Kategoria</th>
+                                    <th>Akcje</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Umowa o pracę</td>
+                                    <td>01.05.2022</td>
+                                    <td>Zatrudnienie</td>
+                                    <td>
+                                        <button class="btn btn-primary btn-sm">Pobierz</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Aneks nr 1</td>
+                                    <td>15.08.2023</td>
+                                    <td>Zatrudnienie</td>
+                                    <td>
+                                        <button class="btn btn-primary btn-sm">Pobierz</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Zaświadczenie o szkoleniu BHP</td>
+                                    <td>05.05.2022</td>
+                                    <td>BHP</td>
+                                    <td>
+                                        <button class="btn btn-primary btn-sm">Pobierz</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Certyfikat Marketing w social media</td>
+                                    <td>12.04.2025</td>
+                                    <td>Szkolenia</td>
+                                    <td>
+                                        <button class="btn btn-primary btn-sm">Pobierz</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                        <div style="margin-top: 20px;">
+                            <button class="btn btn-primary">Dodaj dokument</button>
+                        </div>
+                    </div>
+                `;
+                
+                setTimeout(() => {
+                    initModalTabs();
+                    initEmployeeCharts(employee.id);
+                }, 100);
+            }
+            
+            modal.style.display = 'flex';
+        }
+        
+        function initModalTabs() {
+            const tabs = document.querySelectorAll('.modal .tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // Usuń klasę active z wszystkich tabów
+                    tabs.forEach(t => t.classList.remove('active'));
+                    // Dodaj klasę active do klikniętego taba
+                    this.classList.add('active');
+                    
+                    // Ukryj wszystkie zawartości tabów
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    
+                    // Pokaż zawartość wybranego taba
+                    const tabId = this.getAttribute('data-modaltab') + '-tab';
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+        }
+        
+        function initEmployeeCharts(employeeId) {
+            // Przykładowe dane dla wykresów pracownika
+            if (document.getElementById('employeePerformanceChart')) {
+                const ctx = document.getElementById('employeePerformanceChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Q4 2024', 'Q1 2025', 'Q2 2025'],
+                        datasets: [{
+                            label: 'Ocena ogólna',
+                            data: [4.5, 4.7, 4.8],
+                            borderColor: 'rgba(63, 81, 181, 1)',
+                            backgroundColor: 'rgba(63, 81, 181, 0.1)',
+                            fill: true,
+                            tension: 0.3
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                min: 3.5,
+                                max: 5
+                            }
+                        }
+                    }
+                });
+            }
+            
+            if (document.getElementById('employeeTrainingChart')) {
+                const ctx = document.getElementById('employeeTrainingChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'radar',
+                    data: {
+                        labels: ['Marketing internetowy', 'Social Media', 'SEO', 'Analityka', 'Narzędzia biurowe'],
+                        datasets: [{
+                            label: 'Kompetencje',
+                            data: [90, 95, 85, 80, 88],
+                            backgroundColor: 'rgba(63, 81, 181, 0.2)',
+                            borderColor: 'rgba(63, 81, 181, 1)',
+                            pointBackgroundColor: 'rgba(63, 81, 181, 1)'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            r: {
+                                min: 0,
+                                max: 100
+                            }
+                        }
+                    }
+                });
+            }
+        }
+        
+        function getEmployeeFormHTML() {
+            return `
+                <form id="employeeForm" onsubmit="saveEmployee(event)">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="name">Imię i nazwisko</label>
+                            <input type="text" id="name" name="name" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="position">Stanowisko</label>
+                            <input type="text" id="position" name="position" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="department">Dział</label>
+                            <select id="department" name="department" class="form-control" required>
+                                <option value="">Wybierz dział</option>
+                                <option value="IT">IT</option>
+                                <option value="Marketing">Marketing</option>
+                                <option value="Sprzedaż">Sprzedaż</option>
+                                <option value="HR">HR</option>
+                                <option value="Finanse">Finanse</option>
+                                <option value="Produkt">Produkt</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Telefon</label>
+                            <input type="tel" id="phone" name="phone" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="hireDate">Data zatrudnienia</label>
+                            <input type="date" id="hireDate" name="hireDate" class="form-control" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="avatar">Zdjęcie profilowe</label>
+                        <input type="file" id="avatar" name="avatar" class="form-control-file">
+                    </div>
+                    
+                    <h3 style="margin: 20px 0 10px;">Dodatkowe informacje</h3>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="address">Adres</label>
+                            <input type="text" id="address" name="address" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="birthDate">Data urodzenia</label>
+                            <input type="date" id="birthDate" name="birthDate" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="education">Wykształcenie</label>
+                            <input type="text" id="education" name="education" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="employmentType">Forma zatrudnienia</label>
+                            <select id="employmentType" name="employmentType" class="form-control">
+                                <option value="Umowa o pracę">Umowa o pracę</option>
+                                <option value="B2B">B2B</option>
+                                <option value="Umowa zlecenie">Umowa zlecenie</option>
+                                <option value="Umowa o dzieło">Umowa o dzieło</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="salary">Wynagrodzenie</label>
+                            <input type="text" id="salary" name="salary" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="supervisor">Przełożony</label>
+                            <input type="text" id="supervisor" name="supervisor" class="form-control">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="languages">Języki</label>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="langPl" name="languages[]" value="Polski"> Polski
+                            <input type="checkbox" id="langEn" name="languages[]" value="Angielski"> Angielski
+                            <input type="checkbox" id="langDe" name="languages[]" value="Niemiecki"> Niemiecki
+                            <input type="checkbox" id="langFr" name="languages[]" value="Francuski"> Francuski
+                            <input type="checkbox" id="langOther" name="languages[]" value="Inny"> Inny
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="skills">Umiejętności (rozdzielone przecinkami)</label>
+                        <input type="text" id="skills" name="skills" class="form-control">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="notes">Uwagi</label>
+                        <textarea id="notes" name="notes" class="form-control" rows="3"></textarea>
+                    </div>
+                    
+                    <div style="text-align: right; margin-top: 20px;">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('employeeModal')">Anuluj</button>
+                        <button type="submit" class="btn btn-primary">Zapisz</button>
+                    </div>
+                </form>
+            `;
+        }
+        
+        function editEmployee(employeeId) {
+            const employee = employees.find(e => e.id === employeeId);
+            const modal = document.getElementById('employeeModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalContent = document.getElementById('modalContent');
+            
+            modalTitle.textContent = `Edycja: ${employee.name}`;
+            modalContent.innerHTML = getEmployeeFormHTML();
+            
+            // Wypełnij formularz danymi pracownika
+            setTimeout(() => {
+                document.getElementById('name').value = employee.name;
+                document.getElementById('position').value = employee.position;
+                document.getElementById('department').value = employee.department;
+                document.getElementById('email').value = employee.email;
+                document.getElementById('phone').value = employee.phone;
+                document.getElementById('hireDate').value = formatDateForInput(employee.hireDate);
+                
+                // Wypełnij dodatkowe pola jeśli istnieją
+                if (employee.details) {
+                    document.getElementById('address').value = employee.details.address || '';
+                    document.getElementById('birthDate').value = formatDateForInput(employee.details.birthDate);
+                    document.getElementById('education').value = employee.details.education || '';
+                    document.getElementById('employmentType').value = employee.details.employmentType || '';
+                    document.getElementById('salary').value = employee.details.salary || '';
+                    document.getElementById('supervisor').value = employee.details.supervisor || '';
+                    document.getElementById('skills').value = employee.details.skills ? employee.details.skills.join(', ') : '';
+                    document.getElementById('notes').value = employee.details.notes || '';
+                    
+                    // Zaznacz języki
+                    if (employee.details.languages) {
+                        employee.details.languages.forEach(lang => {
+                            const checkbox = document.querySelector(`input[value="${lang}"]`);
+                            if (checkbox) checkbox.checked = true;
+                        });
+                    }
+                }
+            }, 100);
+            
+            modal.style.display = 'flex';
+        }
+        
+        function saveEmployee(event) {
+            event.preventDefault();
+            
+            // W rzeczywistej aplikacji tutaj byłaby logika zapisywania danych
+            // Na potrzeby demo tylko symulujemy zapisanie i odświeżenie listy
+            
+            const form = document.getElementById('employeeForm');
+            const name = form.elements['name'].value;
+            
+            // Wyświetl powiadomienie o zapisaniu
+            alert(`Dane pracownika ${name} zostały zapisane pomyślnie!`);
+            
+            // Zamknij modal
+            closeModal('employeeModal');
+            
+            // Odśwież listę pracowników
+            displayEmployees();
+        }
+        
+        function contactEmployee(method, contact) {
+            if (method === 'email') {
+                alert(`Wysyłanie emaila do: ${contact}`);
+                // W rzeczywistej aplikacji otworzyłoby to klienta email
+                window.location.href = `mailto:${contact}`;
+            } else if (method === 'phone') {
+                alert(`Dzwonienie na numer: ${contact}`);
+                // W rzeczywistej aplikacji otworzyłoby to aplikację telefonu
+                window.location.href = `tel:${contact}`;
+            }
+        }
+        
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+        
+        function formatDateForInput(dateStr) {
+            // Konwersja formatu daty z "DD.MM.YYYY" na "YYYY-MM-DD" dla input type="date"
+            if (!dateStr) return '';
+            
+            const parts = dateStr.split('.');
+            if (parts.length !== 3) return '';
+            
+            return `${parts[2]}-${parts[1]}-${parts[0]}`;
+        }
+        
+        function initCharts() {
+            initDepartmentChart();
+            initExperienceChart();
+            initGenderChart();
+            initEmploymentTypeChart();
+        }
+        
+        function initDepartmentChart() {
+            const ctx = document.getElementById('departmentChart').getContext('2d');
+            departmentChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: statistics.current.departments.labels,
+                    datasets: [{
+                        label: 'Liczba pracowników',
+                        data: statistics.current.departments.data,
+                        backgroundColor: 'rgba(63, 81, 181, 0.8)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Zatrudnienie według działów'
+                        }
+                    }
+                }
+            });
+        }
+        
+        function initExperienceChart() {
+            const ctx = document.getElementById('experienceChart').getContext('2d');
+            experienceChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: statistics.current.experience.labels,
+                    datasets: [{
+                        label: 'Liczba pracowników',
+                        data: statistics.current.experience.data,
+                        backgroundColor: 'rgba(63, 81, 181, 0.8)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Zatrudnienie według stażu'
+                        }
+                    }
+                }
+            });
+        }
+        
+        function initGenderChart() {
+            const ctx = document.getElementById('genderChart').getContext('2d');
+            genderChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: statistics.current.gender.labels,
+                    datasets: [{
+                        label: 'Płeć',
+                        data: statistics.current.gender.data,
+                        backgroundColor: [
+                            'rgba(63, 81, 181, 0.7)',
+                            'rgba(233, 30, 99, 0.7)'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Zatrudnienie według płci'
+                        }
+                    }
+                }
+            });
+        }
+        
+        function initEmploymentTypeChart() {
+            const ctx = document.getElementById('employmentTypeChart').getContext('2d');
+            employmentTypeChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: statistics.current.employmentType.labels,
+                    datasets: [{
+                        label: 'Typ zatrudnienia',
+                        data: statistics.current.employmentType.data,
+                        backgroundColor: [
+                            'rgba(63, 81, 181, 0.7)',
+                            'rgba(156, 39, 176, 0.7)',
+                            'rgba(233, 30, 99, 0.7)',
+                            'rgba(103, 58, 183, 0.7)'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Zatrudnienie według typu umowy'
+                        }
+                    }
+                }
+            });
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Inicjalizacja tabów
+            initTabs();
+            
+            // Wyświetlenie pracowników
+            displayEmployees();
+            
+            // Inicjalizacja wykresów
+            initCharts();
+            
+            // Listener do wyszukiwania przy naciśnięciu Enter
+            document.getElementById('searchInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    searchEmployees();
+                }
+            });
+        });
+
+        function initTabs() {
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // Usunięcie klasy active z wszystkich tabów
+                    tabs.forEach(t => t.classList.remove('active'));
+                    // Dodanie klasy active do klikniętego taba
+                    this.classList.add('active');
+                    
+                    // Filtrowanie pracowników wg wybranego działu
+                    currentTab = this.getAttribute('data-tab');
+                    displayEmployees();
+                });
+            });
+        }
+
+        function searchEmployees() {
+            searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            displayEmployees();
+        }
+
+        function displayEmployees() {
+            const employeeList = document.getElementById('employeeList');
+            employeeList.innerHTML = ''; // Wyczyść listę
+            
+            // Filtruj pracowników wg działu i wyszukiwania
+            let filteredEmployees = employees.filter(employee => {
+                // Filtrowanie wg działu
+                if (currentTab !== 'all' && employee.department.toLowerCase() !== currentTab) {
+                    return false;
+                }
+                
+                // Filtrowanie wg wyszukiwania
+                if (searchTerm) {
+                    return employee.name.toLowerCase().includes(searchTerm) || 
+                           employee.position.toLowerCase().includes(searchTerm) ||
+                           employee.department.toLowerCase().includes(searchTerm) ||
+                           employee.email.toLowerCase().includes(searchTerm);
+                }
+                
+                return true;
+            });
+            
+            // Jeśli brak wyników
+            if (filteredEmployees.length === 0) {
+                employeeList.innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 20px;">Nie znaleziono pracowników spełniających kryteria wyszukiwania.</p>';
+                return;
+            }
+            
+            // Wyświetl przefiltrowanych pracowników
+            filteredEmployees.forEach(employee => {
+                const employeeCard = document.createElement('div');
+                employeeCard.className = 'employee-card';
+                employeeCard.onclick = () => showEmployeeModal(employee.id);
+                
+                employeeCard.innerHTML = `
+                    <div class="employee-header">
+                        <div class="employee-status">
+                            <span class="badge badge-${employee.status === 'active' ? 'success' : 'warning'}">${employee.status === 'active' ? 'Aktywny' : 'Nieaktywny'}</span>
+                        </div>
+                        <div class="employee-avatar">
+                            <img src="${employee.avatar}" alt="${employee.name}" onerror="this.src='https://i.pravatar.cc/150?img=' + ${employee.id}">
+                        </div>
+                        <div class="employee-name">${employee.name}</div>
+                        <div class="employee-position">${employee.position}</div>
+                        <div class="employee-department">${employee.department}</div>
+                    </div>
+                    <div class="employee-details">
+                        <div class="employee-detail-row">
+                            <span class="employee-detail-label">Email:</span>
+                            <span>${employee.email}</span>
+                        </div>
+                        <div class="employee-detail-row">
+                            <span class="employee-detail-label">Telefon:</span>
+                            <span>${employee.phone}</span>
+                        </div>
+                        <div class="employee-detail-row">
+                            <span class="employee-detail-label">Data zatrudnienia:</span>
+                            <span>${employee.hireDate}</span>
+                        </div>
+                    </div>
+                    <div class="employee-actions">
+                        <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); showEmployeeModal(${employee.id})">Szczegóły</button>
+                        <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); editEmployee(${employee.id})">Edytuj</button>
+                    </div>
+                `;
+                
+                employeeList.appendChild(employeeCard);
+            });
+        }
+
+        function showEmployeeModal(employeeId) {
+            const modal = document.getElementById('employeeModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalContent = document.getElementById('modalContent');
+            
+            if (employeeId === 'new') {
+                // Nowy pracownik
+                modalTitle.textContent = 'Dodaj pracownika';
+                modalContent.innerHTML = getEmployeeFormHTML();
+            } else {
+                // Istniejący pracownik
+                const employee = employees.find(e => e.id === employeeId);
+                modalTitle.textContent = `Profil pracownika: ${employee.name}`;
+                
+                modalContent.innerHTML = `
+                    <div class="employee-profile-header">
+                        <div class="employee-profile-avatar">
+                            <img src="${employee.avatar}" alt="${employee.name}" onerror="this.src='https://i.pravatar.cc/150?img=' + ${employee.id}">
+                        </div>
+                        <div class="employee-profile-info">
+                            <div class="employee-profile-name">${employee.name}</div>
+                            <div class="employee-profile-position">${employee.position}</div>
+                            <div class="employee-profile-department">${employee.department}</div>
+                            <div class="employee-profile-contact">
+                                <button class="btn btn-primary btn-sm" onclick="contactEmployee('email', '${employee.email}')">Email</button>
+                                <button class="btn btn-primary btn-sm" onclick="contactEmployee('phone', '${employee.phone}')">Telefon</button>
+                                <button class="btn btn-secondary btn-sm" onclick="editEmployee(${employee.id})">Edytuj</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tabs">
+                        <div class="tab active" data-modaltab="info">Informacje</div>
+                        <div class="tab" data-modaltab="performance">Wyniki</div>
+                        <div class="tab" data-modaltab="trainings">Szkolenia</div>
+                        <div class="tab" data-modaltab="documents">Dokumenty</div>
+                    </div>
+                    
+                    <div class="tab-content active" id="info-tab">
+                        <h3 style="margin-top: 20px;">Dane osobowe</h3>
+                        <table class="table">
+                            <tr>
+                                <td style="width: 200px;"><strong>Adres:</strong></td>
+                                <td>${employee.details.address}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Data urodzenia:</strong></td>
+                                <td>${employee.details.birthDate}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Wykształcenie:</strong></td>
+                                <td>${employee.details.education}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Języki:</strong></td>
+                                <td>${employee.details.languages.join(', ')}</td>
+                            </tr>
+                        </table>
+                        
+                        <h3 style="margin-top: 20px;">Informacje zawodowe</h3>
+                        <table class="table">
+                            <tr>
+                                <td style="width: 200px;"><strong>Forma zatrudnienia:</strong></td>
+                                <td>${employee.details.employmentType}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Data zatrudnienia:</strong></td>
+                                <td>${employee.hireDate}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Wynagrodzenie:</strong></td>
+                                <td>${employee.details.salary}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Przełożony:</strong></td>
+                                <td>${employee.details.supervisor}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Umiejętności:</strong></td>
+                                <td>${employee.details.skills.join(', ')}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Uwagi:</strong></td>
+                                <td>${employee.details.notes}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    <div class="tab-content" id="performance-tab">
+                        <h3 style="margin-top: 20px;">Oceny pracownicze</h3>
+                        <div style="margin-top: 20px;">
+                            <canvas id="employeePerformanceChart" height="200"></canvas>
+                        </div>
+                        <table class="table" style="margin-top: 20px;">
+                            <thead>
+                                <tr>
+                                    <th>Data oceny</th>
+                                    <th>Wynik</th>
+                                    <th>Oceniający</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>15.05.2025</td>
+                                    <td>4.8/5.0</td>
+                                    <td>Marinette Kowalska</td>
+                                    <td><span class="badge badge-success">Zakończona</span></td>
+                                </tr>
+                                <tr>
+                                    <td>15.02.2025</td>
+                                    <td>4.7/5.0</td>
+                                    <td>Marinette Kowalska</td>
+                                    <td><span class="badge badge-success">Zakończona</span></td>
+                                </tr>
+                                <tr>
+                                    <td>15.11.2024</td>
+                                    <td>4.5/5.0</td>
+                                    <td>Marinette Kowalska</td>
+                                    <td><span class="badge badge-success">Zakończona</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="tab-content" id="trainings-tab">
+                        <h3 style="margin-top: 20px;">Szkolenia</h3>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Nazwa szkolenia</th>
+                                    <th>Data</th>
+                                    <th>Status</th>
+                                    <th>Wynik</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Marketing w mediach społecznościowych</td>
+                                    <td>10.04.2025</td>
+                                    <td><span class="badge badge-success">Ukończone</span></td>
+                                    <td>95%</td>
+                                </tr>
+                                <tr>
+                                    <td>Excel dla zaawansowanych</td>
+                                    <td>15.03.2025</td>
+                                    <td><span class="badge badge-success">Ukończone</span></td>
+                                    <td>88%</td>
+                                </tr>
+                                <tr>
+                                    <td>Wprowadzenie do AI</td>
+                                    <td>15.06.2025</td>
+                                    <td><span class="badge badge-warning">Zaplanowane</span></td>
+                                    <td>-</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                        <div style="margin-top: 20px;">
+                            <canvas id="employeeTrainingChart" height="200"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-content" id="documents-tab">
+                        <h3 style="margin-top: 20px;">Dokumenty</h3>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Nazwa dokumentu</th>
+                                    <th>Data</th>
+                                    <th>Kategoria</th>
+                                    <th>Akcje</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Umowa o pracę</td>
+                                    <td>01.05.2022</td>
+                                    <td>Zatrudnienie</td>
+                                    <td>
+                                        <button class="btn btn-primary btn-sm">Pobierz</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Aneks nr 1</td>
+                                    <td>15.08.2023</td>
+                                    <td>Zatrudnienie</td>
+                                    <td>
+                                        <button class="btn btn-primary btn-sm">Pobierz</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Zaświadczenie o szkoleniu BHP</td>
+                                    <td>05.05.2022</td>
+                                    <td>BHP</td>
+                                    <td>
+                                        <button class="btn btn-primary btn-sm">Pobierz</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Certyfikat Marketing w social media</td>
+                                    <td>12.04.2025</td>
+                                    <td>Szkolenia</td>
+                                    <td>
+                                        <button class="btn btn-primary btn-sm">Pobierz</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                        <div style="margin-top: 20px;">
+                            <button class="btn btn-primary">Dodaj dokument</button>
+                        </div>
+                    </div>
+                `;
+                
+                setTimeout(() => {
+                    initModalTabs();
+                    initEmployeeCharts(employee.id);
+                }, 100);
+            }
+            
+            modal.style.display = 'flex';
+        }
+        
+        function initModalTabs() {
+            const tabs = document.querySelectorAll('.modal .tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // Usuń klasę active z wszystkich tabów
+                    tabs.forEach(t => t.classList.remove('active'));
+                    // Dodaj klasę active do klikniętego taba
+                    this.classList.add('active');
+                    
+                    // Ukryj wszystkie zawartości tabów
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    
+                    // Pokaż zawartość wybranego taba
+                    const tabId = this.getAttribute('data-modaltab') + '-tab';
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+        }
+        
+        function initEmployeeCharts(employeeId) {
+            // Przykładowe dane dla wykresów pracownika
+            if (document.getElementById('employeePerformanceChart')) {
+                const ctx = document.getElementById('employeePerformanceChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Q4 2024', 'Q1 2025', 'Q2 2025'],
+                        datasets: [{
+                            label: 'Ocena ogólna',
+                            data: [4.5, 4.7, 4.8],
+                            borderColor: 'rgba(63, 81, 181, 1)',
+                            backgroundColor: 'rgba(63, 81, 181, 0.1)',
+                            fill: true,
+                            tension: 0.3
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                min: 3.5,
+                                max: 5
+                            }
+                        }
+                    }
+                });
+            }
+            
+            if (document.getElementById('employeeTrainingChart')) {
+                const ctx = document.getElementById('employeeTrainingChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'radar',
+                    data: {
+                        labels: ['Marketing internetowy', 'Social Media', 'SEO', 'Analityka', 'Narzędzia biurowe'],
+                        datasets: [{
+                            label: 'Kompetencje',
+                            data: [90, 95, 85, 80, 88],
+                            backgroundColor: 'rgba(63, 81, 181, 0.2)',
+                            borderColor: 'rgba(63, 81, 181, 1)',
+                            pointBackgroundColor: 'rgba(63, 81, 181, 1)'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            r: {
+                                min: 0,
+                                max: 100
+                            }
+                        }
+                    }
+                });
+            }
+        }
+        
+        function getEmployeeFormHTML() {
+            return `
+                <form id="employeeForm" onsubmit="saveEmployee(event)">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="name">Imię i nazwisko</label>
+                            <input type="text" id="name" name="name" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="position">Stanowisko</label>
+                            <input type="text" id="position" name="position" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="department">Dział</label>
+                            <select id="department" name="department" class="form-control" required>
+                                <option value="">Wybierz dział</option>
+                                <option value="IT">IT</option>
+                                <option value="Marketing">Marketing</option>
+                                <option value="Sprzedaż">Sprzedaż</option>
+                                <option value="HR">HR</option>
+                                <option value="Finanse">Finanse</option>
+                                <option value="Produkt">Produkt</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Telefon</label>
+                            <input type="tel" id="phone" name="phone" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="hireDate">Data zatrudnienia</label>
+                            <input type="date" id="hireDate" name="hireDate" class="form-control" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="avatar">Zdjęcie profilowe</label>
+                        <input type="file" id="avatar" name="avatar" class="form-control-file">
+                    </div>
+                    
+                    <h3 style="margin: 20px 0 10px;">Dodatkowe informacje</h3>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="address">Adres</label>
+                            <input type="text" id="address" name="address" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="birthDate">Data urodzenia</label>
+                            <input type="date" id="birthDate" name="birthDate" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="education">Wykształcenie</label>
+                            <input type="text" id="education" name="education" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="employmentType">Forma zatrudnienia</label>
+                            <select id="employmentType" name="employmentType" class="form-control">
+                                <option value="Umowa o pracę">Umowa o pracę</option>
+                                <option value="B2B">B2B</option>
+                                <option value="Umowa zlecenie">Umowa zlecenie</option>
+                                <option value="Umowa o dzieło">Umowa o dzieło</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="salary">Wynagrodzenie</label>
+                            <input type="text" id="salary" name="salary" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="supervisor">Przełożony</label>
+                            <input type="text" id="supervisor" name="supervisor" class="form-control">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="languages">Języki</label>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="langPl" name="languages[]" value="Polski"> Polski
+                            <input type="checkbox" id="langEn" name="languages[]" value="Angielski"> Angielski
+                            <input type="checkbox" id="langDe" name="languages[]" value="Niemiecki"> Niemiecki
+                            <input type="checkbox" id="langFr" name="languages[]" value="Francuski"> Francuski
+                            <input type="checkbox" id="langOther" name="languages[]" value="Inny"> Inny
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="skills">Umiejętności (rozdzielone przecinkami)</label>
+                        <input type="text" id="skills" name="skills" class="form-control">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="notes">Uwagi</label>
+                        <textarea id="notes" name="notes" class="form-control" rows="3"></textarea>
+                    </div>
+                    
+                    <div style="text-align: right; margin-top: 20px;">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('employeeModal')">Anuluj</button>
+                        <button type="submit" class="btn btn-primary">Zapisz</button>
+                    </div>
+                </form>
+            `;
+        }
+        
+        function editEmployee(employeeId) {
+            const employee = employees.find(e => e.id === employeeId);
+            const modal = document.getElementById('employeeModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalContent = document.getElementById('modalContent');
+            
+            modalTitle.textContent = `Edycja: ${employee.name}`;
+            modalContent.innerHTML = getEmployeeFormHTML();
+            
+            // Wypełnij formularz danymi pracownika
+            setTimeout(() => {
+                document.getElementById('name').value = employee.name;
+                document.getElementById('position').value = employee.position;
+                document.getElementById('department').value = employee.department;
+                document.getElementById('email').value = employee.email;
+                document.getElementById('phone').value = employee.phone;
+                document.getElementById('hireDate').value = formatDateForInput(employee.hireDate);
+                
+                // Wypełnij dodatkowe pola jeśli istnieją
+                if (employee.details) {
+                    document.getElementById('address').value = employee.details.address || '';
+                    document.getElementById('birthDate').value = formatDateForInput(employee.details.birthDate);
+                    document.getElementById('education').value = employee.details.education || '';
+                    document.getElementById('employmentType').value = employee.details.employmentType || '';
+                    document.getElementById('salary').value = employee.details.salary || '';
+                    document.getElementById('supervisor').value = employee.details.supervisor || '';
+                    document.getElementById('skills').value = employee.details.skills ? employee.details.skills.join(', ') : '';
+                    document.getElementById('notes').value = employee.details.notes || '';
+                    
+                    // Zaznacz języki
+                    if (employee.details.languages) {
+                        employee.details.languages.forEach(lang => {
+                            const checkbox = document.querySelector(`input[value="${lang}"]`);
+                            if (checkbox) checkbox.checked = true;
+                        });
+                    }
+                }
+            }, 100);
+            
+            modal.style.display = 'flex';
+        }
+        
+        function saveEmployee(event) {
+            event.preventDefault();
+            
+            // W rzeczywistej aplikacji tutaj byłaby logika zapisywania danych
+            // Na potrzeby demo tylko symulujemy zapisanie i odświeżenie listy
+            
+            const form = document.getElementById('employeeForm');
+            const name = form.elements['name'].value;
+            
+            // Wyświetl powiadomienie o zapisaniu
+            alert(`Dane pracownika ${name} zostały zapisane pomyślnie!`);
+            
+            // Zamknij modal
+            closeModal('employeeModal');
+            
+            // Odśwież listę pracowników
+            displayEmployees();
+        }
+        
+        function contactEmployee(method, contact) {
+            if (method === 'email') {
+                alert(`Wysyłanie emaila do: ${contact}`);
+                // W rzeczywistej aplikacji otworzyłoby to klienta email
+                window.location.href = `mailto:${contact}`;
+            } else if (method === 'phone') {
+                alert(`Dzwonienie na numer: ${contact}`);
+                // W rzeczywistej aplikacji otworzyłoby to aplikację telefonu
+                window.location.href = `tel:${contact}`;
+            }
+        }
+        
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+        
+        function formatDateForInput(dateStr) {
+            // Konwersja formatu daty z "DD.MM.YYYY" na "YYYY-MM-DD" dla input type="date"
+            if (!dateStr) return '';
+            
+            const parts = dateStr.split('.');
+            if (parts.length !== 3) return '';
+            
+            return `${parts[2]}-${parts[1]}-${parts[0]}`;
+        }
+        
+        function initCharts() {
+            initDepartmentChart();
+            initExperienceChart();
+            initGenderChart();
+            initEmploymentTypeChart();
+        }
+        
+        function initDepartmentChart() {
+            const ctx = document.getElementById('departmentChart').getContext('2d');
+            departmentChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: statistics.current.departments.labels,
+                    datasets: [{
+                        label: 'Liczba pracowników',
+                        data: statistics.current.departments.data,
+                        backgroundColor: 'rgba(63, 81, 181, 0.8)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Zatrudnienie według działów'
+                        }
+                    }
+                }
+            });
+        }
+        
+        function initExperienceChart() {
+            const ctx = document.getElementById('experienceChart').getContext('2d');
+            experienceChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: statistics.current.experience.labels,
+                    datasets: [{
+                        label: 'Liczba pracowników',
+                        data: statistics.current.experience.data,
+                        backgroundColor: 'rgba(63, 81, 181, 0.8)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Zatrudnienie według stażu'
+                        }
+                    }
+                }
+            });
+        }
+        
+        function initGenderChart() {
+            const ctx = document.getElementById('genderChart').getContext('2d');
+            genderChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: statistics.current.gender.labels,
+                    datasets: [{
+                        label: 'Płeć',
+                        data: statistics.current.gender.data,
+                        backgroundColor: [
+                            'rgba(63, 81, 181, 0.7)',
+                            'rgba(233, 30, 99, 0.7)'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Zatrudnienie według płci'
+                        }
+                    }
+                }
+            });
+        }
+        
+        function initEmploymentTypeChart() {
+            const ctx = document.getElementById('employmentTypeChart').getContext('2d');
+            employmentTypeChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: statistics.current.employmentType.labels,
+                    datasets: [{
+                        label: 'Typ zatrudnienia',
+                        data: statistics.current.employmentType.data,
+                        backgroundColor: [
+                            'rgba(63, 81, 181, 0.7)',
+                            'rgba(156, 39, 176, 0.7)',
+                            'rgba(233, 30, 99, 0.7)',
+                            'rgba(103, 58, 183, 0.7)'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Zatrudnienie według typu umowy'
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

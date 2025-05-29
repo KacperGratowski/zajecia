@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System HR - Panel zarządzania</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #3f51b5;
+            --secondary: #f50057;
+            --light: #f5f5f5;
+            --dark: #212121;
+            --success: #4caf50;
+            --warning: #ff9800;
+            --danger: #f44336;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f0f2f5;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 250px;
+            background-color: var(--dark);
+            color: white;
+            padding: 20px 0;
+        }
+
+        .logo {
+            padding: 15px 20px;
+            font-size: 24px;
+            font-weight: bold;
+            border-bottom: 1px solid #444;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .logo img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .nav-item {
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            color: white;
+            display: block;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background-color: var(--primary);
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .header h1 {
+            color: var(--dark);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        
+        .loading-indicator {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .stat-card {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background-color: var(--primary);
+        }
+        
+        .notification-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--danger);
+            border-radius: 50%;
+            display: inline-block;
+            margin-left: 5px;
+        }
+
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .dashboard-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: var(--primary);
+            margin: 10px 0;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .tab:hover, .tab.active {
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th, .table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .table th {
+            background-color: #f9f9f9;
+            font-weight: 600;
+        }
+
+        .table tbody tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        .badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            color: white;
+        }
+
+        .badge-success {
+            background-color: var(--success);
+        }
+
+        .badge-warning {
+            background-color: var(--warning);
+        }
+
+        .badge-danger {
+            background-color: var(--danger);
+        }
+
+        .badge-primary {
+            background-color: var(--primary);
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 300px;
+            margin-bottom: 20px;
+        }
+        
+        .btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background-color: var(--secondary);
+            color: white;
+        }
+        
+        .btn-success {
+            background-color: var(--success);
+            color: white;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            width: 500px;
+            max-width: 90%;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .close {
+            cursor: pointer;
+            font-size: 24px;
+        }
+
+        .employee-card {
+            display: flex;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .employee-photo {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: #ddd;
+            margin-right: 15px;
+        }
+
+        .employee-info {
+            flex: 1;
+        }
+
+        .rating-stars {
+            color: #ffc107;
+            font-size: 20px;
+        }
+
+        .footer {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: var(--dark);
+            color: white;
+            text-align: center;
+            font-size: 14px;
+        }
+        
+        .footer a {
+            color: white;
+            text-decoration: none;
+        }
+        
+        .footer img {
+            max-width: 120px;
+            height: auto;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+            }
+            .dashboard-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="logo">
+                <img src="https://kunimlb.pl/img/podpis_white.png" alt="Kuni Logo">
+            </div>
+            <a href="dashboard.html" class="nav-item active">Dashboard</a>
+            <a href="rekrutacja.html" class="nav-item">Rekrutacja</a>
+            <a href="pracownicy.html" class="nav-item">Pracownicy</a>
+            <a href="oceny.html" class="nav-item">Oceny pracownicze</a>
+            <a href="szkolenia.html" class="nav-item">Szkolenia</a>
+            <a href="analiza.html" class="nav-item">Analiza danych</a>
+            <a href="ustawienia.html" class="nav-item">Ustawienia</a>
+        </div>
+        
+        <div class="main-content">
+            <div class="header">
+                <h1>Dashboard</h1>
+                <div class="user-profile">
+                    <span>Adrien Agreste</span>
+                    <div class="user-avatar">
+                        <img src="img/aa_20.png" alt="Adrien Agreste" onerror="this.src='https://i.pravatar.cc/150?img=8'">
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-stats">
+                <div class="stat-card" onclick="showStatDetailModal('employees')">
+                    <div>Łączna liczba pracowników</div>
+                    <div class="stat-number" id="employeeCount">87</div>
+                    <div style="color:green; font-size:14px;">↑ 5% (m/m)</div>
+                </div>
+                <div class="stat-card" onclick="showStatDetailModal('recruitment')">
+                    <div>Aktywne rekrutacje</div>
+                    <div class="stat-number">14</div>
+                    <div style="color:green; font-size:14px;">↑ 8% (m/m)</div>
+                </div>
+                <div class="stat-card" onclick="showStatDetailModal('ratings')">
+                    <div>Średnia ocena zespołu</div>
+                    <div class="stat-number">4.7</div>
+                    <div style="color:green; font-size:14px;">↑ 0.2 (m/m)</div>
+                </div>
+                <div class="stat-card" onclick="showStatDetailModal('trainings')">
+                    <div>Ukończone szkolenia</div>
+                    <div class="stat-number">29</div>
+                    <div style="color:red; font-size:14px;">↓ 3% (m/m)</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2>Zatrudnienie w działach</h2>
+                    <div>
+                        <select class="form-control" id="departmentTimeRange" onchange="updateDepartmentChart()">
+                            <option value="30">Ostatnie 30 dni</option>
+                            <option value="90" selected>Ostatni kwartał</option>
+                            <option value="365">Ostatni rok</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="departmentChart"></canvas>
+                </div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Dział</th>
+                            <th>Liczba pracowników</th>
+                            <th>Średnia ocena</th>
+                            <th>Zaangażowanie</th>
+                        </tr>
+                    </thead>
+                    <tbody id="departmentTableBody">
+                        <!-- Dane tabeli będą wstawiane dynamicznie przez JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2>Analiza wydajności</h2>
+                    <div>
+                        <button class="btn btn-primary" onclick="refreshPerformanceData()">
+                            <span id="refreshBtn">Odśwież dane</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="performanceChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2>Aktywność szkoleniowa</h2>
+                </div>
+                <div style="display:flex; gap:20px; flex-wrap: wrap;">
+                    <div style="flex:1; min-width:300px;">
+                        <div class="chart-container" style="height:250px;">
+                            <canvas id="trainingChart"></canvas>
+                        </div>
+                    </div>
+                    <div style="flex:1; min-width:300px;">
+                        <h4>Najbliższe szkolenia</h4>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Nazwa</th>
+                                    <th>Data</th>
+                                    <th>Uczestnicy</th>
+                                    <th>Akcje</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Wprowadzenie do AI</td>
+                                    <td>15.06.2025</td>
+                                    <td>18/20</td>
+                                    <td><button class="btn btn-primary btn-sm" onclick="showTrainingDetailModal('AI')">Szczegóły</button></td>
+                                </tr>
+                                <tr>
+                                    <td>Zarządzanie projektem</td>
+                                    <td>22.06.2025</td>
+                                    <td>12/15</td>
+                                    <td><button class="btn btn-primary btn-sm" onclick="showTrainingDetailModal('PM')">Szczegóły</button></td>
+                                </tr>
+                                <tr>
+                                    <td>Excel dla zaawansowanych</td>
+                                    <td>10.06.2025</td>
+                                    <td>8/10</td>
+                                    <td><button class="btn btn-primary btn-sm" onclick="showTrainingDetailModal('Excel')">Szczegóły</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer">
+                <a href="https://kunimlb.pl" target="_blank">
+                    <img src="https://kunimlb.pl/img/podpis_white.png" alt="Kuni Logo">
+                    <p>Wykonano dla KuniCorp przez KuniMLB</p>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal statystyk -->
+    <div class="modal" id="statDetailModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="statModalTitle">Szczegóły statystyki</h2>
+                <span class="close" onclick="closeModal('statDetailModal')">&times;</span>
+            </div>
+            <div id="statModalContent">
+                <!-- Treść modalu będzie wstawiana dynamicznie -->
+            </div>
+            <div style="text-align: right; margin-top: 15px;">
+                <button class="btn btn-primary" onclick="closeModal('statDetailModal')">Zamknij</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal szczegółów szkolenia -->
+    <div class="modal" id="trainingDetailModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="trainingModalTitle">Szczegóły szkolenia</h2>
+                <span class="close" onclick="closeModal('trainingDetailModal')">&times;</span>
+            </div>
+            <div id="trainingModalContent">
+                <!-- Treść modalu będzie wstawiana dynamicznie -->
+            </div>
+            <div style="text-align: right; margin-top: 15px;">
+                <button class="btn btn-secondary" onclick="closeModal('trainingDetailModal')">Zamknij</button>
+                <button class="btn btn-primary" onclick="registerForTraining()">Zapisz się</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal do dodawania nowej rekrutacji -->
+    <div class="modal" id="newRecruitmentModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Dodaj nową rekrutację</h2>
+                <span class="close">&times;</span>
+            </div>
+            <form>
+                <div class="form-group">
+                    <label for="position">Stanowisko</label>
+                    <input type="text" id="position" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="department">Dział</label>
+                    <select id="department" class="form-control" required>
+                        <option value="">Wybierz dział</option>
+                        <option value="it">IT</option>
+                        <option value="marketing">Marketing</option>
+                        <option value="sales">Sprzedaż</option>
+                        <option value="hr">HR</option>
+                        <option value="finance">Finanse</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="description">Opis stanowiska</label>
+                    <textarea id="description" class="form-control" rows="5" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="requirements">Wymagania</label>
+                    <textarea id="requirements" class="form-control" rows="5" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="deadline">Termin składania aplikacji</label>
+                    <input type="date" id="deadline" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="platforms">Platformy publikacji</label>
+                    <div>
+                        <input type="checkbox" id="internal" checked> Wewnętrzna
+                        <input type="checkbox" id="pracuj" checked> Pracuj.pl
+                        <input type="checkbox" id="linkedin"> LinkedIn
+                    </div>
+                </div>
+                <div style="text-align: right;">
+                    <button type="button" class="btn btn-secondary">Anuluj</button>
+                    <button type="submit" class="btn btn-primary">Zapisz</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let departmentChart;
+        let performanceChart;
+        let trainingChart;
+        let currentTrainingId;
+        const departmentData = {
+            labels: ['IT', 'Marketing', 'Sprzedaż', 'HR', 'Finanse'],
+            datasets: {
+                30: [32, 20, 17, 8, 8],
+                90: [32, 21, 18, 8, 8],
+                365: [31, 18, 16, 7, 7]
+            },
+            tableData: {
+                30: [
+                    {dept: 'IT', count: 32, rating: '4.4/5.0', engagement: '85%'},
+                    {dept: 'Marketing', count: 20, rating: '4.6/5.0', engagement: '91%'},
+                    {dept: 'Sprzedaż', count: 17, rating: '4.2/5.0', engagement: '88%'},
+                    {dept: 'HR', count: 8, rating: '4.8/5.0', engagement: '90%'},
+                    {dept: 'Finanse', count: 8, rating: '4.5/5.0', engagement: '84%'}
+                ],
+                90: [
+                    {dept: 'IT', count: 32, rating: '4.5/5.0', engagement: '87%'},
+                    {dept: 'Marketing', count: 21, rating: '4.7/5.0', engagement: '92%'},
+                    {dept: 'Sprzedaż', count: 18, rating: '4.3/5.0', engagement: '89%'},
+                    {dept: 'HR', count: 8, rating: '4.8/5.0', engagement: '90%'},
+                    {dept: 'Finanse', count: 8, rating: '4.5/5.0', engagement: '85%'}
+                ],
+                365: [
+                    {dept: 'IT', count: 31, rating: '4.3/5.0', engagement: '83%'},
+                    {dept: 'Marketing', count: 18, rating: '4.5/5.0', engagement: '90%'},
+                    {dept: 'Sprzedaż', count: 16, rating: '4.1/5.0', engagement: '85%'},
+                    {dept: 'HR', count: 7, rating: '4.6/5.0', engagement: '88%'},
+                    {dept: 'Finanse', count: 7, rating: '4.4/5.0', engagement: '82%'}
+                ]
+            }
+        };
+        
+        const performanceData = {
+            labels: ['Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj'],
+            datasets: [
+                {
+                    label: 'Marketing',
+                    data: [83, 87, 89, 93, 96],
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    fill: false,
+                    tension: 0.1
+                },
+                {
+                    label: 'IT',
+                    data: [87, 86, 89, 90, 92],
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    fill: false,
+                    tension: 0.1
+                },
+                {
+                    label: 'Sprzedaż',
+                    data: [79, 82, 85, 87, 91],
+                    borderColor: 'rgba(255, 206, 86, 1)',
+                    fill: false,
+                    tension: 0.1
+                }
+            ]
+        };
+        
+        const trainingData = {
+            labels: ['Ukończone', 'W trakcie', 'Zaplanowane'],
+            data: [29, 14, 8],
+            backgroundColor: [
+                'rgba(76, 175, 80, 0.8)',
+                'rgba(255, 152, 0, 0.8)',
+                'rgba(63, 81,181, 0.8)'
+            ]
+        };
+        
+        const trainingDetails = {
+            'AI': {
+                title: 'Wprowadzenie do AI',
+                date: '15.06.2025',
+                time: '10:00 - 16:00',
+                location: 'Sala konferencyjna A, piętro 3',
+                trainer: 'Gabriel Agreste',
+                participants: '18/20',
+                description: 'Szkolenie wprowadzające do tematyki sztucznej inteligencji. Uczestnicy poznają podstawowe pojęcia związane z AI, uczeniem maszynowym i deep learning. Warsztat obejmie też praktyczne zastosowania AI w biznesie oraz etyczne aspekty tej technologii.',
+                requirements: 'Podstawowa znajomość matematyki i statystyki. Laptop z zainstalowanym Pythonem 3.8+'
+            },
+            'PM': {
+                title: 'Zarządzanie projektem',
+                date: '22.06.2025',
+                time: '9:00 - 17:00',
+                location: 'Sala konferencyjna B, piętro 2',
+                trainer: 'Marinette Kowalska',
+                participants: '12/15',
+                description: 'Kompleksowe szkolenie z metodyk zarządzania projektami. Uczestnicy nauczą się skutecznego planowania, monitorowania i zamykania projektów. Szkolenie obejmuje także komunikację w zespole i zarządzanie ryzykiem.',
+                requirements: 'Doświadczenie w pracy zespołowej. Mile widziane podstawowe doświadczenie projektowe.'
+            },
+            'Excel': {
+                title: 'Excel dla zaawansowanych',
+                date: '10.06.2025',
+                time: '9:00 - 15:00',
+                location: 'Sala szkoleniowa C, piętro 1',
+                trainer: 'Jan Nowak',
+                participants: '8/10',
+                description: 'Zaawansowane funkcje i narzędzia Excel, w tym tabele przestawne, makra, funkcje wyszukiwania oraz analizy danych. Szkolenie obejmuje praktyczne przykłady i zadania dostosowane do potrzeb pracowników.',
+                requirements: 'Znajomość podstaw Excela. Laptop z zainstalowanym MS Office.'
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Inicjalizacja wykresów
+            initDepartmentChart();
+            initPerformanceChart();
+            initTrainingChart();
+            
+            // Wypełnienie tabeli działów
+            updateDepartmentTable('90');
+            
+            // Obsługa modali
+            setupModalHandlers();
+            
+            // Efekt odświeżania liczby pracowników
+            setTimeout(function() {
+                animateEmployeeCount(87, 89);
+            }, 5000);
+        });
+        
+        function initDepartmentChart() {
+            const ctx = document.getElementById('departmentChart').getContext('2d');
+            departmentChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: departmentData.labels,
+                    datasets: [{
+                        label: 'Liczba pracowników',
+                        data: departmentData.datasets[90],
+                        backgroundColor: 'rgba(63, 81, 181, 0.8)',
+                        borderColor: 'rgba(63, 81, 181, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    animation: {
+                        duration: 1000
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Liczba pracowników w działach - ostatni kwartał'
+                        }
+                    }
+                }
+            });
+        }
+        
+        function initPerformanceChart() {
+            const ctx = document.getElementById('performanceChart').getContext('2d');
+            performanceChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: performanceData.labels,
+                    datasets: performanceData.datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            min: 75,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: 'Wydajność (%)'
+                            }
+                        }
+                    },
+                    animation: {
+                        duration: 1000
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Wydajność działów w czasie'
+                        }
+                    }
+                }
+            });
+        }
+        
+        function initTrainingChart() {
+            const ctx = document.getElementById('trainingChart').getContext('2d');
+            trainingChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: trainingData.labels,
+                    datasets: [{
+                        data: trainingData.data,
+                        backgroundColor: trainingData.backgroundColor,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Status szkoleń'
+                        }
+                    }
+                }
+            });
+        }
+        
+        function updateDepartmentChart() {
+            const timeRange = document.getElementById('departmentTimeRange').value;
+            departmentChart.data.datasets[0].data = departmentData.datasets[timeRange];
+            
+            let titleText = 'Liczba pracowników w działach - ';
+            if (timeRange === '30') titleText += 'ostatnie 30 dni';
+            else if (timeRange === '90') titleText += 'ostatni kwartał';
+            else if (timeRange === '365') titleText += 'ostatni rok';
+            
+            departmentChart.options.plugins.title.text = titleText;
+            departmentChart.update();
+            
+            // Aktualizacja tabeli
+            updateDepartmentTable(timeRange);
+        }
+        
+        function updateDepartmentTable(timeRange) {
+            const tableBody = document.getElementById('departmentTableBody');
+            tableBody.innerHTML = '';
+            
+            departmentData.tableData[timeRange].forEach(row => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${row.dept}</td>
+                    <td>${row.count}</td>
+                    <td>${row.rating}</td>
+                    <td>${row.engagement}</td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        }
+        
+        function refreshPerformanceData() {
+            // Symulacja odświeżania danych
+            const refreshBtn = document.getElementById('refreshBtn');
+            const originalText = refreshBtn.textContent;
+            refreshBtn.innerHTML = `<span class="loading-indicator"></span> Odświeżanie...`;
+            
+            setTimeout(() => {
+                // Symuluj nowe dane
+                performanceData.datasets.forEach(dataset => {
+                    const lastValue = dataset.data[dataset.data.length-1];
+                    const newValue = Math.min(100, lastValue + (Math.random() * 2 - 0.5));
+                    dataset.data.push(parseFloat(newValue.toFixed(1)));
+                    dataset.data.shift();
+                });
+                
+                // Aktualizuj etykiety
+                const newMonth = 'Czerwiec';
+                performanceData.labels.push(newMonth);
+                performanceData.labels.shift();
+                
+                // Aktualizuj wykres
+                performanceChart.data.labels = performanceData.labels;
+                performanceChart.data.datasets = performanceData.datasets;
+                performanceChart.update();
+                
+                // Przywróć oryginalny tekst przycisku
+                refreshBtn.textContent = originalText;
+            }, 1500);
+        }
+        
+        function animateEmployeeCount(start, end) {
+            const duration = 2000;
+            const element = document.getElementById('employeeCount');
+            const startTime = performance.now();
+            
+            function updateCount(timestamp) {
+                const progress = Math.min((timestamp - startTime) / duration, 1);
+                const currentCount = Math.floor(start + progress * (end - start));
+                element.textContent = currentCount;
+                
+                if (progress < 1) {
+                    requestAnimationFrame(updateCount);
+                }
+            }
+            
+            requestAnimationFrame(updateCount);
+        }
+        
+        function showStatDetailModal(type) {
+            const modal = document.getElementById('statDetailModal');
+            const modalTitle = document.getElementById('statModalTitle');
+            const modalContent = document.getElementById('statModalContent');
+            
+            switch(type) {
+                case 'employees':
+                    modalTitle.textContent = 'Szczegóły zatrudnienia';
+                    modalContent.innerHTML = `
+                        <div style="margin-bottom: 20px;">
+                            <h3>Łączna liczba pracowników: 89</h3>
+                            <p>Wzrost o 5% w porównaniu do poprzedniego miesiąca</p>
+                        </div>
+                        <div style="margin-bottom: 20px;">
+                            <h4>Ostatnie zmiany</h4>
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Data</th>
+                                        <th>Pracownik</th>
+                                        <th>Zmiana</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>28.05.2025</td>
+                                        <td>Alya Césaire</td>
+                                        <td>Zatrudnienie</td>
+                                    </tr>
+                                    <tr>
+                                        <td>27.05.2025</td>
+                                        <td>Tomasz Kowalczyk</td>
+                                        <td>Zatrudnienie</td>
+                                    </tr>
+                                    <tr>
+                                        <td>15.05.2025</td>
+                                        <td>Karolina Nowak</td>
+                                        <td>Zwolnienie</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                    break;
+                case 'recruitment':
+                    modalTitle.textContent = 'Szczegóły rekrutacji';
+                    modalContent.innerHTML = `
+                        <div style="margin-bottom: 20px;">
+                            <h3>14 aktywnych rekrutacji</h3>
+                            <p>Wzrost o 8% w porównaniu do poprzedniego miesiąca</p>
+                        </div>
+                        <div style="margin-bottom: 20px;">
+                            <canvas id="recruitmentChart" style="height: 200px;"></canvas>
+                        </div>
+                        <div>
+                            <h4>Najbardziej aktywne rekrutacje</h4>
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Stanowisko</th>
+                                        <th>Dział</th>
+                                        <th>Aplikacji</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Senior Java Developer</td>
+                                        <td>IT</td>
+                                        <td>32</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Specjalista ds. marketingu</td>
+                                        <td>Marketing</td>
+                                        <td>28</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Przedstawiciel handlowy</td>
+                                        <td>Sprzedaż</td>
+                                        <td>24</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                    
+                    // Inicjalizuj wykres po wyświetleniu modalu
+                    setTimeout(() => {
+                        const ctx = document.getElementById('recruitmentChart').getContext('2d');
+                        new Chart(ctx, {
+                            type: 'line',
+                            data: {
+                                labels: ['Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj'],
+                                datasets: [{
+                                    label: 'Liczba aktywnych rekrutacji',
+                                    data: [8, 10, 11, 13, 14],
+                                    borderColor: 'rgba(233, 30, 99, 1)',
+                                    backgroundColor: 'rgba(233, 30, 99, 0.1)',
+                                    fill: true
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false
+                            }
+                        });
+                    }, 100);
+                    break;
+                case 'ratings':
+                case 'trainings':
+                    // Podobne implementacje dla pozostałych statystyk
+                    modalTitle.textContent = type === 'ratings' ? 'Szczegóły ocen' : 'Szczegóły szkoleń';
+                    modalContent.innerHTML = `<p>Szczegółowe dane będą dostępne wkrótce...</p>`;
+                    break;
+            }
+            
+            modal.style.display = 'flex';
+        }
+        
+        function showTrainingDetailModal(trainingId) {
+            const modal = document.getElementById('trainingDetailModal');
+            const modalTitle = document.getElementById('trainingModalTitle');
+            const modalContent = document.getElementById('trainingModalContent');
+            
+            currentTrainingId = trainingId;
+            const training = trainingDetails[trainingId];
+            
+            modalTitle.textContent = training.title;
+            modalContent.innerHTML = `
+                <div style="margin-bottom: 20px;">
+                    <table style="width: 100%;">
+                        <tr>
+                            <td style="width: 150px; font-weight: 600;">Data:</td>
+                            <td>${training.date}</td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: 600;">Godzina:</td>
+                            <td>${training.time}</td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: 600;">Miejsce:</td>
+                            <td>${training.location}</td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: 600;">Prowadzący:</td>
+                            <td>${training.trainer}</td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: 600;">Uczestnicy:</td>
+                            <td>${training.participants}</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <h4>Opis szkolenia</h4>
+                    <p>${training.description}</p>
+                </div>
+                
+                <div>
+                    <h4>Wymagania</h4>
+                    <p>${training.requirements}</p>
+                </div>
+            `;
+            
+            modal.style.display = 'flex';
+        }
+        
+        function registerForTraining() {
+            const training = trainingDetails[currentTrainingId];
+            const [current, max] = training.participants.split('/');
+            const updateCurrent = parseInt(current) + 1;
+            
+            // Aktualizacja liczby uczestników
+            trainingDetails[currentTrainingId].participants = `${updateCurrent}/${max}`;
+            
+            // Wyświetl komunikat o powodzeniu
+            alert(`Zarejestrowano na szkolenie: ${training.title}`);
+            
+            // Zamknij modal
+            closeModal('trainingDetailModal');
+            
+            // Zaktualizuj widok tabeli
+            const tableRows = document.querySelectorAll('.table tbody tr');
+            tableRows.forEach(row => {
+                const firstCell = row.cells[0].textContent;
+                if (firstCell.includes(training.title)) {
+                    row.cells[2].textContent = `${updateCurrent}/${max}`;
+                }
+            });
+        }
+        
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+        
+        function setupModalHandlers() {
+            // Zamykanie modali po kliknięciu poza nimi
+            window.addEventListener('click', function(event) {
+                const modals = document.getElementsByClassName('modal');
+                for (let i = 0; i < modals.length; i++) {
+                    if (event.target === modals[i]) {
+                        modals[i].style.display = 'none';
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

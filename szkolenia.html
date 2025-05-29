@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System HR - Szkolenia</title>
+    <style>
+        :root {
+            --primary: #3f51b5;
+            --secondary: #f50057;
+            --light: #f5f5f5;
+            --dark: #212121;
+            --success: #4caf50;
+            --warning: #ff9800;
+            --danger: #f44336;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f0f2f5;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 250px;
+            background-color: var(--dark);
+            color: white;
+            padding: 20px 0;
+        }
+
+        .logo {
+            padding: 15px 20px;
+            font-size: 24px;
+            font-weight: bold;
+            border-bottom: 1px solid #444;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .logo img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .nav-item {
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            color: white;
+            display: block;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background-color: var(--primary);
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .header h1 {
+            color: var(--dark);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .tab:hover, .tab.active {
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th, .table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .table th {
+            background-color: #f9f9f9;
+            font-weight: 600;
+        }
+
+        .table tbody tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        .badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            color: white;
+        }
+
+        .badge-success {
+            background-color: var(--success);
+        }
+
+        .badge-warning {
+            background-color: var(--warning);
+        }
+
+        .badge-danger {
+            background-color: var(--danger);
+        }
+
+        .badge-primary {
+            background-color: var(--primary);
+        }
+
+        .btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background-color: var(--secondary);
+            color: white;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        .training-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .training-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .training-image {
+            height: 160px;
+            background-color: #eee;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .training-content {
+            padding: 20px;
+        }
+
+        .training-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .training-category {
+            display: inline-block;
+            padding: 3px 8px;
+            background-color: #f0f0f0;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+
+        .training-info {
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+
+        .training-info-label {
+            width: 80px;
+            color: #666;
+        }
+
+        .training-progress {
+            margin: 15px 0;
+        }
+
+        .progress-container {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            margin: 8px 0;
+        }
+
+        .progress-bar {
+            height: 8px;
+            border-radius: 4px;
+            background-color: var(--primary);
+        }
+
+        .training-footer {
+            padding: 15px 20px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .moodle-integration {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .moodle-courses {
+            margin-top: 15px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .moodle-course {
+            background-color: white;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .footer {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: var(--dark);
+            color: white;
+            text-align: center;
+            font-size: 14px;
+        }
+        
+        .footer a {
+            color: white;
+            text-decoration: none;
+        }
+        
+        .footer img {
+            max-width: 120px;
+            height: auto;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="logo">
+                <img src="https://kunimlb.pl/img/podpis_white.png" alt="Kuni Logo">
+            </div>
+            <a href="dashboard.html" class="nav-item">Dashboard</a>
+            <a href="rekrutacja.html" class="nav-item">Rekrutacja</a>
+            <a href="pracownicy.html" class="nav-item">Pracownicy</a>
+            <a href="oceny.html" class="nav-item">Oceny pracownicze</a>
+            <a href="szkolenia.html" class="nav-item active">Szkolenia</a>
+            <a href="analiza.html" class="nav-item">Analiza danych</a>
+            <a href="ustawienia.html" class="nav-item">Ustawienia</a>
+        </div>
+        
+        <div class="main-content">
+            <div class="header">
+                <h1>Szkolenia i rozwój</h1>
+                <div class="user-profile">
+                    <span>Adrien Agreste</span>
+                    <div class="user-avatar">
+                        <img src="img/aa_20.png" alt="Adrien Agreste">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2>Katalog szkoleń</h2>
+                    <button class="btn btn-primary">Dodaj szkolenie</button>
+                </div>
+
+                <div class="tabs">
+                    <div class="tab active">Nadchodzące szkolenia</div>
+                    <div class="tab">Zrealizowane</div>
+                    <div class="tab">Moje szkolenia</div>
+                    <div class="tab">Moodle</div>
+                </div>
+
+                <div class="training-grid">
+                    <div class="training-card">
+                        <div class="training-image" style="background-image: url('https://images.unsplash.com/photo-1527689368864-3a821dbccc34?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60')"></div>
+                        <div class="training-content">
+                            <div class="training-title">Wprowadzenie do AI</div>
+                            <div class="training-category">Technologia</div>
+                            
+                            <div class="training-info">
+                                <div class="training-info-label">Data:</div>
+                                <div>15.06.2025</div>
+                            </div>
+                            <div class="training-info">
+                                <div class="training-info-label">Miejsce:</div>
+                                <div>Sala konferencyjna A</div>
+                            </div>
+                            <div class="training-info">
+                                <div class="training-info-label">Trener:</div>
+                                <div>Gabriel Agreste</div>
+                            </div>
+                            <div class="training-info">
+                                <div class="training-info-label">Uczestnicy:</div>
+                                <div>18/20</div>
+                            </div>
+
+                            <div class="training-progress">
+                                <div style="display:flex; justify-content:space-between;">
+                                    <span>Liczba miejsc</span>
+                                    <span>18/20</span>
+                                </div>
+                                <div class="progress-container">
+                                    <div class="progress-bar" style="width: 90%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="training-footer">
+                            <span class="badge badge-primary">Planowane</span>
+                            <button class="btn btn-primary">Zapisz się</button>
+                        </div>
+                    </div>
+
+                    <div class="training-card">
+                        <div class="training-image" style="background-image: url('https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60')"></div>
+                        <div class="training-content">
+                            <div class="training-title">Zarządzanie projektem</div>
+                            <div class="training-category">Soft skills</div>
+                            
+                            <div class="training-info">
+                                <div class="training-info-label">Data:</div>
+                                <div>22.06.2025</div>
+                            </div>
+                            <div class="training-info">
+                                <div class="training-info-label">Miejsce:</div>
+                                <div>Sala konferencyjna B</div>
+                            </div>
+                            <div class="training-info">
+                                <div class="training-info-label">Trener:</div>
+                                <div>Marinette Kowalska</div>
+                            </div>
+                            <div class="training-info">
+                                <div class="training-info-label">Uczestnicy:</div>
+                                <div>12/15</div>
+                            </div>
+
+                            <div class="training-progress">
+                                <div style="display:flex; justify-content:space-between;">
+                                    <span>Liczba miejsc</span>
+                                    <span>12/15</span>
+                                </div>
+                                <div class="progress-container">
+                                    <div class="progress-bar" style="width: 80%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="training-footer">
+                            <span class="badge badge-primary">Planowane</span>
+                            <button class="btn btn-primary">Zapisz się</button>
+                        </div>
+                    </div>
+
+                    <div class="training-card">
+                        <div class="training-image" style="background-image: url('https://images.unsplash.com/photo-1524178232363-1fb2b075b655?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60')"></div>
+                        <div class="training-content">
+                            <div class="training-title">Excel dla zaawansowanych</div>
+                            <div class="training-category">Narzędzia</div>
+                            
+                            <div class="training-info">
+                                <div class="training-info-label">Data:</div>
+                                <div>10.06.2025</div>
+                            </div>
+                            <div class="training-info">
+                                <div class="training-info-label">Miejsce:</div>
+                                <div>Sala szkoleniowa C</div>
+                            </div>
+                            <div class="training-info">
+                                <div class="training-info-label">Trener:</div>
+                                <div>Jan Nowak</div>
+                            </div>
+                            <div class="training-info">
+                                <div class="training-info-label">Uczestnicy:</div>
+                                <div>8/10</div>
+                            </div>
+
+                            <div class="training-progress">
+                                <div style="display:flex; justify-content:space-between;">
+                                    <span>Liczba miejsc</span>
+                                    <span>8/10</span>
+                                </div>
+                                <div class="progress-container">
+                                    <div class="progress-bar" style="width: 80%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="training-footer">
+                            <span class="badge badge-warning">Ostatnie miejsca</span>
+                            <button class="btn btn-primary">Zapisz się</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2>Moodle - Platforma e-learningowa</h2>
+                    <button class="btn btn-primary">Przejdź do Moodle</button>
+                </div>
+
+                <div class="moodle-integration">
+                    <p>Zintegrowana platforma Moodle umożliwia dostęp do kursów online. Poniżej znajdują się kursy przypisane do Twojego konta:</p>
+                    
+                    <div class="moodle-courses">
+                        <div class="moodle-course">
+                            <h4>Marketing w mediach społecznościowych</h4>
+                            <div style="margin: 10px 0;">Postęp: 75%</div>
+                            <div class="progress-container">
+                                <div class="progress-bar" style="width: 75%;"></div>
+                            </div>
+                            <div style="margin-top: 10px;">
+                                <button class="btn btn-primary">Kontynuuj</button>
+                            </div>
+                        </div>
+                        
+                        <div class="moodle-course">
+                            <h4>Analiza danych w marketingu</h4>
+                            <div style="margin: 10px 0;">Postęp: 50%</div>
+                            <div class="progress-container">
+                                <div class="progress-bar" style="width: 50%;"></div>
+                            </div>
+                            <div style="margin-top: 10px;">
+                                <button class="btn btn-primary">Kontynuuj</button>
+                            </div>
+                        </div>
+                        
+                        <div class="moodle-course">
+                            <h4>Adobe Photoshop podstawy</h4>
+                            <div style="margin: 10px 0;">Postęp: 100%</div>
+                            <div class="progress-container">
+                                <div class="progress-bar" style="width: 100%;"></div>
+                            </div>
+                            <div style="margin-top: 10px;">
+                                <button class="btn btn-secondary">Ukończony</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2>Statystyki szkoleń</h2>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
+                    <div>
+                        <h3>Najbardziej popularne szkolenia</h3>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Nazwa szkolenia</th>
+                                    <th>Kategoria</th>
+                                    <th>Uczestnicy</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Wprowadzenie do AI</td>
+                                    <td>Technologia</td>
+                                    <td>18/20 (90%)</td>
+                                </tr>
+                                <tr>
+                                    <td>Zarządzanie projektem</td>
+                                    <td>Soft skills</td>
+                                    <td>12/15 (80%)</td>
+                                </tr>
+                                <tr>
+                                    <td>Excel dla zaawansowanych</td>
+                                    <td>Narzędzia</td>
+                                    <td>8/10 (80%)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div>
+                        <h3>Liczba szkoleń według kategorii</h3>
+                        <img src="https://quickchart.io/chart?c={type:'pie',data:{labels:['Technologia','Soft skills','Narzędzia','Język obcy','Zarządzanie'],datasets:[{data:[12,8,7,5,3],backgroundColor:['rgba(63,81,181,0.7)','rgba(156,39,176,0.7)','rgba(233,30,99,0.7)','rgba(103,58,183,0.7)','rgba(33,150,243,0.7)']}]}}" width="100%" height="220px" alt="Wykres kołowy kategorii">
+                    </div>
+                </div>
+                
+                <div style="margin-top: 30px;">
+                    <h3>Aktywność szkoleniowa w 2025</h3>
+                    <img src="https://quickchart.io/chart?c={type:'bar',data:{labels:['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec'],datasets:[{label:'Zaplanowane',data:[4,6,5,8,7,9],backgroundColor:'rgba(63,81,181,0.7)'},{label:'Ukończone',data:[4,5,5,7,8,0],backgroundColor:'rgba(76,175,80,0.7)'}]}}" width="100%" height="250px" alt="Aktywność szkoleniowa">
+                </div>
+            </div>
+            
+            <div class="footer">
+                <a href="https://kunimlb.pl" target="_blank">
+                    <img src="https://kunimlb.pl/img/podpis_white.png" alt="Kuni Logo">
+                    <p>Wykonano dla KuniCorp przez KuniMLB</p>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Obsługa zakładek
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // Usuń klasę active z wszystkich zakładek
+                    tabs.forEach(t => t.classList.remove('active'));
+                    // Dodaj klasę active do klikniętej zakładki
+                    this.classList.add('active');
+                });
+            });
+        });
+    </script>
+</body>
+</html>

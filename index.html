@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System HR - Logowanie</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --primary: #3f51b5;
+            --secondary: #f50057;
+            --light: #f5f5f5;
+            --dark: #212121;
+            --success: #4caf50;
+            --warning: #ff9800;
+            --danger: #f44336;
+            --miraculous: #e41c6f;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f0f2f5;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-image: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 500px;
+            padding: 30px;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-header img {
+            max-width: 200px;
+            margin-bottom: 15px;
+        }
+
+        .login-header h2 {
+            color: var(--dark);
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .login-header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .login-form {
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(63, 81, 181, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+            font-size: 16px;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #303f9f;
+        }
+
+        .remember-forgot {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .remember {
+            display: flex;
+            align-items: center;
+        }
+
+        .remember input {
+            margin-right: 5px;
+        }
+
+        .forgot-password {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .forgot-password:hover {
+            text-decoration: underline;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 25px 0;
+        }
+
+        .divider span {
+            color: #666;
+            padding: 0 10px;
+            font-size: 14px;
+        }
+
+        .divider hr {
+            flex: 1;
+            border: none;
+            height: 1px;
+            background-color: #ddd;
+        }
+
+        .social-login {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .social-btn {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            color: white;
+        }
+
+        .social-btn i {
+            margin-right: 8px;
+            font-size: 16px;
+        }
+
+        .btn-google {
+            background-color: #EA4335;
+        }
+
+        .btn-facebook {
+            background-color: #3b5998;
+        }
+
+        .btn-github {
+            background-color: #24292e;
+        }
+
+        .btn-twitter {
+            background-color: #1DA1F2;
+        }
+
+        .btn-apple {
+            background-color: #000000;
+        }
+
+        .btn-discord {
+            background-color: #7289da;
+        }
+
+        .btn-instagram {
+            background-image: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+        }
+
+        .btn-pornhub {
+            background-color: #ff9000;
+            color: #000000;
+        }
+
+        .btn-wolni {
+            background-color: #c10e21;
+        }
+
+        .register-link {
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+            margin-top: 20px;
+        }
+
+        .register-link a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+
+        .login-footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #888;
+            font-size: 12px;
+        }
+
+        .login-footer a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .login-footer a:hover {
+            text-decoration: underline;
+        }
+        
+        .see-more-btn {
+            background: none;
+            border: none;
+            color: var(--primary);
+            cursor: pointer;
+            font-size: 14px;
+            padding: 5px;
+            margin: 10px auto;
+            display: block;
+        }
+        
+        .additional-logins {
+            display: none;
+        }
+        
+        .additional-logins.show {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(63, 81, 181, 0.2);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .error-message {
+            color: var(--danger);
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        .miraculous-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #e41c6f 0%, #ff525e 100%);
+            color: white;
+            padding: 12px 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(228, 28, 111, 0.3);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .miraculous-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(228, 28, 111, 0.4);
+        }
+        
+        .miraculous-btn:active {
+            transform: translateY(1px);
+        }
+        
+        .miraculous-btn i {
+            margin-right: 10px;
+            font-size: 18px;
+        }
+        
+        .miraculous-btn::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+            transform: scale(0);
+            opacity: 0;
+            transition: transform 0.6s, opacity 0.6s;
+        }
+        
+        .miraculous-btn:hover::before {
+            transform: scale(1);
+            opacity: 1;
+        }
+        
+        @keyframes ladybugSpot {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        
+        .spot {
+            position: absolute;
+            background-color: black;
+            border-radius: 50%;
+            width: 8px;
+            height: 8px;
+            animation: ladybugSpot 3s infinite;
+        }
+        
+        .spot1 { top: 25%; left: 20%; }
+        .spot2 { top: 45%; left: 30%; }
+        .spot3 { top: 60%; left: 75%; }
+        .spot4 { top: 30%; left: 65%; }
+        .spot5 { top: 60%; left: 15%; }
+        
+        .miraculous-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0,0,0,0.8);
+            z-index: 1500;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        .miraculous-modal.show {
+            display: flex;
+        }
+        
+        .miraculous-logo {
+
+            margin-bottom: 30px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); filter: brightness(1); }
+            50% { transform: scale(1.05); filter: brightness(1.2); }
+            100% { transform: scale(1); filter: brightness(1); }
+        }
+        
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        .miraculous-loader {
+            width: 200px;
+            height: 6px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+            margin-top: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .miraculous-loader::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #e41c6f, #ff525e);
+            animation: loading 4s forwards;
+            border-radius: 3px;
+        }
+        
+        @keyframes loading {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+        
+        .miraculous-text {
+            margin-top: 15px;
+            font-size: 16px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <img src="https://kunimlb.pl/img/podpis_white.png" alt="Logo" style="background-color: var(--dark); padding: 10px; border-radius: 10px;">
+            <h2>Logowanie do systemu HR</h2>
+            <p>Zaloguj się, aby uzyskać dostęp do systemu zarządzania zasobami ludzkimi</p>
+        </div>
+
+        <!-- Przycisk Miraculous na górze formularza -->
+        <button class="miraculous-btn" onclick="miraculous()">
+            <i class="fas fa-mask"></i> Zaloguj przez MiraculousAuth
+            <span class="spot spot1"></span>
+            <span class="spot spot2"></span>
+            <span class="spot spot3"></span>
+            <span class="spot spot4"></span>
+            <span class="spot spot5"></span>
+        </button>
+  
+        <form class="login-form" id="loginForm">
+            <div class="form-group">
+                <label for="username">Nazwa użytkownika lub email</label>
+                <input type="text" id="username" class="form-control" placeholder="Wprowadź nazwę użytkownika lub email" required>
+                <div class="error-message" id="usernameError">Proszę wprowadzić prawidłową nazwę użytkownika lub email</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Hasło</label>
+                <input type="password" id="password" class="form-control" placeholder="Wprowadź hasło" required>
+                <div class="error-message" id="passwordError">Hasło musi zawierać co najmniej 8 znaków</div>
+            </div>
+            
+            <div class="remember-forgot">
+                <div class="remember">
+                    <input type="checkbox" id="remember">
+                    <label for="remember">Zapamiętaj mnie</label>
+                </div>
+                <a href="#" class="forgot-password">Zapomniałem hasła</a>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">Zaloguj się</button>
+        </form>
+        
+        <div class="divider">
+            <hr><span>LUB</span><hr>
+        </div>
+        
+        <div class="social-login">
+            <button class="social-btn btn-google" onclick="socialLogin('Google')">
+                <i class="fab fa-google"></i> Google
+            </button>
+            
+            <button class="social-btn btn-facebook" onclick="socialLogin('Facebook')">
+                <i class="fab fa-facebook-f"></i> Facebook
+            </button>
+            
+            <button class="social-btn btn-github" onclick="socialLogin('GitHub')">
+                <i class="fab fa-github"></i> GitHub
+            </button>
+            
+            <button class="social-btn btn-discord" onclick="socialLogin('Discord')">
+                <i class="fab fa-discord"></i> Discord
+            </button>
+            
+            <button class="social-btn" style="background-color: #2D9CDB;" onclick="socialLogin('BLIK')">
+                <i class="fas fa-mobile-alt"></i> BLIK
+            </button>
+            
+            <button class="social-btn" style="background-color: #FF0000;" onclick="socialLogin('Przelewy24')">
+                <i class="fas fa-money-bill-wave"></i> Przelewy24
+            </button>
+        </div>
+        
+        <button id="seeMoreBtn" class="see-more-btn">Pokaż więcej opcji logowania ▼</button>
+        
+        <div class="additional-logins" id="additionalLogins">
+            <button class="social-btn btn-apple" onclick="socialLogin('Apple')">
+                <i class="fab fa-apple"></i> Apple
+            </button>
+            
+            <button class="social-btn btn-twitter" onclick="socialLogin('Twitter')">
+                <i class="fab fa-twitter"></i> Twitter
+            </button>
+            
+            <button class="social-btn btn-instagram" onclick="socialLogin('Instagram')">
+                <i class="fab fa-instagram"></i> Instagram
+            </button>
+            
+            <button class="social-btn" style="background-color: #0077B5;" onclick="socialLogin('LinkedIn')">
+                <i class="fab fa-linkedin-in"></i> LinkedIn
+            </button>
+            
+            <button class="social-btn btn-pornhub" onclick="socialLogin('PornHub')">
+                <i class="fas fa-play"></i> PornHub
+            </button>
+            
+            <button class="social-btn btn-wolni" onclick="socialLogin('WolniSlowianie')">
+                <i class="fas fa-sun"></i> Wolni Słowianie
+            </button>
+        </div>
+        
+        <div class="register-link">
+            Nie masz jeszcze konta? <a href="#" onclick="showRegistrationForm()">Zarejestruj się</a>
+        </div>
+        
+        <div class="login-footer">
+            <p>© 2025 KuniCorp. Wszystkie prawa zastrzeżone.</p>
+            <p><a href="#">Polityka prywatności</a> | <a href="#">Warunki korzystania</a></p>
+        </div>
+    </div>
+    
+    <!-- Modal Miraculous -->
+    <div class="miraculous-modal" id="miraculousModal">
+        <button class="close-btn" onclick="closeModal()">×</button>
+        <img src="https://www.miraculousladybug.com/wp-content/uploads/2023/02/MIR_CLASSIC_logo_rgb-color-small.png" alt="Miraculous Logo" class="miraculous-logo">
+        <h2>Łączenie z MiraculousAuth</h2>
+        <div class="miraculous-loader"></div>
+        <div class="miraculous-text">
+            Trwa uwierzytelnianie przez MiraculousID...
+            <br>Przygotuj swoje Miraculous!
+        </div>
+        <audio id="miraculousAudio" loop>
+            <source src="mp3/a.mp3" type="audio/mpeg">
+            Twoja przeglądarka nie obsługuje elementu audio.
+        </audio>
+    </div>
+    
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Obsługa przycisku "Pokaż więcej opcji logowania"
+            const seeMoreBtn = document.getElementById('seeMoreBtn');
+            const additionalLogins = document.getElementById('additionalLogins');
+            
+            seeMoreBtn.addEventListener('click', function() {
+                additionalLogins.classList.toggle('show');
+                if (additionalLogins.classList.contains('show')) {
+                    seeMoreBtn.textContent = 'Ukryj dodatkowe opcje ▲';
+                } else {
+                    seeMoreBtn.textContent = 'Pokaż więcej opcji logowania ▼';
+                }
+            });
+            
+            // Obsługa formularza logowania
+            const loginForm = document.getElementById('loginForm');
+            
+            loginForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+                
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+                
+                let isValid = true;
+                
+                // Walidacja nazwy użytkownika
+                if (username.trim() === '') {
+                    document.getElementById('usernameError').style.display = 'block';
+                    isValid = false;
+                } else {
+                    document.getElementById('usernameError').style.display = 'none';
+                }
+                
+                // Walidacja hasła
+                if (password.length < 8) {
+                    document.getElementById('passwordError').style.display = 'block';
+                    isValid = false;
+                } else {
+                    document.getElementById('passwordError').style.display = 'none';
+                }
+                
+                if (isValid) {
+                    // Pokaż animację ładowania
+                    document.getElementById('loadingOverlay').style.display = 'flex';
+                    
+                    // Symulacja opóźnienia logowania
+                    setTimeout(function() {
+                        // Logowanie standardowe
+                        if (username === 'admin' && password === 'password123') {
+                            window.location.href = 'dashboard.html'; // Zmieniono z dashboard.html na dashboard.html
+                        } else {
+                            alert('Nieprawidłowa nazwa użytkownika lub hasło.');
+                            document.getElementById('loadingOverlay').style.display = 'none';
+                        }
+                    }, 1500);
+                }
+            });
+        });
+        
+        function socialLogin(provider) {
+            // Pokaż animację ładowania
+            document.getElementById('loadingOverlay').style.display = 'flex';
+            
+            // Symulacja opóźnienia logowania przez serwis zewnętrzny
+            setTimeout(function() {
+                if (provider === 'PornHub') {
+                    alert('Logowanie przez PornHub jest obecnie niedostępne. Proszę wybrać inną metodę logowania.');
+                    document.getElementById('loadingOverlay').style.display = 'none';
+                } else if (provider === 'WolniSlowianie') {
+                    alert('Portal Wolni Słowianie wymaga weryfikacji tożsamości słowiańskiej. Proszę przejść proces weryfikacji.');
+                    document.getElementById('loadingOverlay').style.display = 'none';
+                } else if (provider === 'BLIK') {
+                    promptBlikCode();
+                } else if (provider === 'Przelewy24') {
+                    alert('Zostaniesz przekierowany do serwisu Przelewy24 w celu weryfikacji tożsamości.');
+                    setTimeout(function() {
+                        window.location.href = 'dashboard.html';
+                    }, 1500);
+                } else {
+                    console.log(`Logowanie przez ${provider}`);
+                    window.location.href = 'dashboard.html';
+                }
+            }, 2000);
+        }
+        
+        function promptBlikCode() {
+            const blikCode = prompt('Wprowadź 6-cyfrowy kod BLIK do autoryzacji:');
+            
+            if (blikCode && blikCode.length === 6 && !isNaN(blikCode)) {
+                alert('Weryfikacja BLIK w toku...');
+                setTimeout(function() {
+                    window.location.href = 'dashboard.html';
+                }, 2000);
+            } else if (blikCode !== null) {
+                alert('Nieprawidłowy kod BLIK. Kod powinien składać się z 6 cyfr.');
+                document.getElementById('loadingOverlay').style.display = 'none';
+            } else {
+                // User canceled
+                document.getElementById('loadingOverlay').style.display = 'none';
+            }
+        }
+        
+        function showRegistrationForm() {
+            alert('Rejestracja nowych użytkowników jest obecnie niedostępna. Proszę skontaktować się z administratorem systemu.');
+        }
+        
+        function miraculous() {
+            const modal = document.getElementById('miraculousModal');
+            const audio = document.getElementById('miraculousAudio');
+            
+            modal.classList.add('show');
+            
+            // Uruchom odtwarzanie piosenki
+            audio.volume = 0.5; // Ustaw głośność na 50%
+            audio.play().catch(error => {
+                console.error('Błąd odtwarzania audio:', error);
+            });
+            
+            // Po 9 sekundach przekieruj do dashboardu
+            setTimeout(function() {
+                window.location.href = 'dashboard.html'; // Zmieniono z dashboard.html na dashboard.html
+            }, 15000);
+        }
+        
+        function closeModal() {
+            const modal = document.getElementById('miraculousModal');
+            const audio = document.getElementById('miraculousAudio');
+            
+            modal.classList.remove('show');
+            audio.pause();
+            audio.currentTime = 0;
+        }
+    </script>
+</body>
+</html>

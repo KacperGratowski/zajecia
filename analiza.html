@@ -1,0 +1,1273 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System HR - Analiza danych</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <style>
+        :root {
+            --primary: #3f51b5;
+            --secondary: #f50057;
+            --light: #f5f5f5;
+            --dark: #212121;
+            --success: #4caf50;
+            --warning: #ff9800;
+            --danger: #f44336;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f0f2f5;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 250px;
+            background-color: var(--dark);
+            color: white;
+            padding: 20px 0;
+        }
+
+        .logo {
+            padding: 15px 20px;
+            font-size: 24px;
+            font-weight: bold;
+            border-bottom: 1px solid #444;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .logo img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .nav-item {
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            color: white;
+            display: block;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background-color: var(--primary);
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .header h1 {
+            color: var(--dark);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .dashboard-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: var(--primary);
+            margin: 10px 0;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .tab:hover, .tab.active {
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th, .table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .table th {
+            background-color: #f9f9f9;
+            font-weight: 600;
+        }
+
+        .table tbody tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        .badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            color: white;
+        }
+
+        .badge-success {
+            background-color: var(--success);
+        }
+
+        .badge-warning {
+            background-color: var(--warning);
+        }
+
+        .badge-danger {
+            background-color: var(--danger);
+        }
+
+        .badge-primary {
+            background-color: var(--primary);
+        }
+
+        .chart-container {
+            height: 300px;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background-color: var(--secondary);
+            color: white;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        .analysis-filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .filter-select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            min-width: 150px;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .metric-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 15px;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary);
+            margin: 10px 0;
+        }
+
+        .metric-label {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .metric-trend {
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .trend-up {
+            color: var(--success);
+        }
+
+        .trend-down {
+            color: var(--danger);
+        }
+
+        .analysis-charts {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .analysis-charts {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .chart-box {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 15px;
+            min-height: 300px;
+        }
+
+        .chart-title {
+            font-weight: bold;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .employee-performance-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .performance-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .performance-header {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .performance-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #eee;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .performance-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .performance-name {
+            flex: 1;
+            font-weight: bold;
+        }
+
+        .performance-metrics {
+            padding: 15px;
+        }
+
+        .performance-metric {
+            margin-bottom: 15px;
+        }
+
+        .metric-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .progress-container {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            margin: 5px 0;
+        }
+
+        .progress-bar {
+            height: 8px;
+            border-radius: 4px;
+        }
+
+        .progress-high {
+            background-color: var(--success);
+        }
+
+        .progress-medium {
+            background-color: var(--warning);
+        }
+
+        .progress-low {
+            background-color: var(--danger);
+        }
+
+        .footer {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: var(--dark);
+            color: white;
+            text-align: center;
+            font-size: 14px;
+        }
+        
+        .footer a {
+            color: white;
+            text-decoration: none;
+        }
+        
+        .footer img {
+            max-width: 120px;
+            height: auto;
+            margin-bottom: 10px;
+        }
+
+        .data-tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+        }
+        
+        .data-tooltip .tooltip-content {
+            visibility: hidden;
+            width: 200px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .data-tooltip:hover .tooltip-content {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        .chart-container {
+            position: relative;
+        }
+        
+        .chart-loading {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255,255,255,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(63,81,181,0.2);
+            border-top: 4px solid rgba(63,81,181,1);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="logo">
+                <img src="https://kunimlb.pl/img/podpis_white.png" alt="Kuni Logo">
+            </div>
+            <a href="dashboard.html" class="nav-item">Dashboard</a>
+            <a href="rekrutacja.html" class="nav-item">Rekrutacja</a>
+            <a href="pracownicy.html" class="nav-item">Pracownicy</a>
+            <a href="oceny.html" class="nav-item">Oceny pracownicze</a>
+            <a href="szkolenia.html" class="nav-item">Szkolenia</a>
+            <a href="analiza.html" class="nav-item active">Analiza danych</a>
+            <a href="ustawienia.html" class="nav-item">Ustawienia</a>
+        </div>
+        
+        <div class="main-content">
+            <div class="header">
+                <h1>Analiza danych pracowników</h1>
+                <div class="user-profile">
+                    <span>Adrien Agreste</span>
+                    <div class="user-avatar">
+                        <img src="img/aa_20.png" alt="Adrien Agreste" onerror="this.src='https://i.pravatar.cc/150?img=8'">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2>Przegląd analityczny</h2>
+                    <div>
+                        <button class="btn btn-primary" id="exportReportBtn">Eksportuj raport</button>
+                    </div>
+                </div>
+                
+                <div class="analysis-filters">
+                    <div class="filter-group">
+                        <span class="filter-label">Dział</span>
+                        <select class="filter-select" id="departmentFilter" onchange="updateCharts()">
+                            <option value="all">Wszyscy pracownicy</option>
+                            <option value="it">Dział IT</option>
+                            <option value="marketing" selected>Dział Marketingu</option>
+                            <option value="sales">Dział Sprzedaży</option>
+                            <option value="hr">HR</option>
+                            <option value="finance">Finanse</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <span class="filter-label">Okres</span>
+                        <select class="filter-select" id="periodFilter" onchange="updateCharts()">
+                            <option value="month">Ostatni miesiąc</option>
+                            <option value="quarter" selected>Ostatni kwartał</option>
+                            <option value="halfyear">Ostatnie półrocze</option>
+                            <option value="year">Ostatni rok</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <span class="filter-label">Metryki</span>
+                        <select class="filter-select" id="metricsFilter" onchange="updateCharts()">
+                            <option value="all" selected>Wszystkie metryki</option>
+                            <option value="efficiency">Wydajność</option>
+                            <option value="performance">Wyniki</option>
+                            <option value="engagement">Zaangażowanie</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <span class="filter-label">&nbsp;</span>
+                        <button class="btn btn-primary" id="applyFiltersBtn">Zastosuj</button>
+                    </div>
+                </div>
+
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">Średnia ocena działu</div>
+                        <div class="metric-value" id="avgRating">4.6</div>
+                        <div class="metric-trend trend-up">↑ 0.3 vs poprzedni okres</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Wskaźnik zaangażowania</div>
+                        <div class="metric-value" id="engagementRate">92%</div>
+                        <div class="metric-trend trend-up">↑ 4% vs poprzedni okres</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Realizacja projektów</div>
+                        <div class="metric-value" id="projectCompletion">88%</div>
+                        <div class="metric-trend trend-down">↓ 2% vs poprzedni okres</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Średni staż</div>
+                        <div class="metric-value" id="avgTenure">3.2</div>
+                        <div class="metric-trend">lata</div>
+                    </div>
+                </div>
+
+                <div class="analysis-charts">
+                    <div class="chart-box">
+                        <div class="chart-title">Struktura zatrudnienia w dziale</div>
+                        <div class="chart-container" style="height: 250px; position: relative;">
+                            <div id="structureChartLoading" class="chart-loading">
+                                <div class="spinner"></div>
+                            </div>
+                            <canvas id="structureChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-box">
+                        <div class="chart-title">Dynamika wydajności</div>
+                        <div class="chart-container" style="height: 250px; position: relative;">
+                            <div id="performanceChartLoading" class="chart-loading">
+                                <div class="spinner"></div>
+                            </div>
+                            <canvas id="performanceChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2>Wyniki pracowników - dział Marketing</h2>
+                    <button class="btn btn-primary" id="newPerformanceReviewBtn">Nowa ocena</button>
+                </div>
+                
+                <div class="employee-performance-grid">
+                    <div class="performance-card">
+                        <div class="performance-header">
+                            <div class="performance-avatar">
+                                <img src="img/aa_20.png" alt="Adrien Agreste" onerror="this.src='https://i.pravatar.cc/150?img=8'">
+                            </div>
+                            <div class="performance-name">Adrien Agreste</div>
+                            <div class="badge badge-success">Top performer</div>
+                        </div>
+                        <div class="performance-metrics">
+                            <div class="performance-metric">
+                                <div class="metric-header">
+                                    <span>Kreatywność</span>
+                                    <span class="data-tooltip">95%
+                                        <span class="tooltip-content">+5% vs poprzedni kwartał</span>
+                                    </span>
+                                </div>
+                                <div class="progress-container">
+                                    <div class="progress-bar progress-high" style="width: 95%;"></div>
+                                </div>
+                            </div>
+                            <div class="performance-metric">
+                                <div class="metric-header">
+                                    <span>Praca zespołowa</span>
+                                    <span class="data-tooltip">90%
+                                        <span class="tooltip-content">+2% vs poprzedni kwartał</span>
+                                    </span>
+                                </div>
+                                <div class="progress-container">
+                                    <div class="progress-bar progress-high" style="width: 90%;"></div>
+                                </div>
+                            </div>
+                            <div class="performance-metric">
+                                <div class="metric-header">
+                                    <span>Realizacja zadań</span>
+                                    <span class="data-tooltip">92%
+                                        <span class="tooltip-content">+3% vs poprzedni kwartał</span>
+                                    </span>
+                                </div>
+                                <div class="progress-container">
+                                    <div class="progress-bar progress-high" style="width: 92%;"></div>
+                                </div>
+                            </div>
+                            <div class="performance-metric">
+                                <div class="metric-header">
+                                    <span>ROI kampanii</span>
+                                    <span class="data-tooltip">98%
+                                        <span class="tooltip-content">+8% vs poprzedni kwartał</span>
+                                    </span>
+                                </div>
+                                <div class="progress-container">
+                                    <div class="progress-bar progress-high" style="width: 98%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="performance-card">
+                        <div class="performance-header">
+                            <div class="performance-avatar">
+                                <img src="https://i.pravatar.cc/150?img=3" alt="Marinette Kowalska">
+                            </div>
+                            <div class="performance-name">Marinette Kowalska</div>
+                            <div class="badge badge-success">Team Leader</div>
+                        </div>
+                        <div class="performance-metrics">
+                            <div class="performance-metric">
+                                <div class="metric-header">
+                                    <span>Kreatywność</span>
+                                    <span>88%</span>
+                                </div>
+                                <div class="progress-container">
+                                    <div class="progress-bar progress-high" style="width: 88%;"></div>
+                                </div>
+                            </div>
+                            <div class="performance-metric">
+                                <div class="metric-header">
+                                    <span>Praca zespołowa</span>
+                                    <span>94%</span>
+                                </div>
+                                <div class="progress-container">
+                                    <div class="progress-bar progress-high" style="width: 94%;"></div>
+                                </div>
+                            </div>
+                            <div class="performance-metric">
+                                <div class="metric-header">
+                                    <span>Realizacja zadań</span>
+                                    <span>86%</span>
+                                </div>
+                                <div class="progress-container">
+                                    <div class="progress-bar progress-high" style="width: 86%;"></div>
+                                </div>
+                            </div>
+                            <div class="performance-metric">
+                                <div class="metric-header">
+                                    <span>Zarządzanie zespołem</span>
+                                    <span>92%</span>
+                                </div>
+                                <div class="progress-container">
+                                    <div class="progress-bar progress-high" style="width: 92%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="performance-card">
+                        <div class="performance-header">
+                            <div class="performance-avatar">
+                                <img src="https://i.pravatar.cc/150?img=13" alt="Gabriel Agreste">
+                            </div>
+                            <div class="performance-name">Gabriel Agreste</div>
+                            <div class="badge badge-primary">Dyrektor</div>
+                        </div>
+                        <div class="performance-metrics">
+                            <div class="performance-metric">
+                                <div class="metric-header">
+                                    <span>Kreatywność</span>
+                                    <span>96%</span>
+                                </div>
+                                <div class="progress-container">
+                                    <div class="progress-bar progress-high" style="width: 96%;"></div>
+                                </div>
+                            </div>
+                            <div class="performance-metric">
+                                <div class="metric-header">
+                                    <span>Podejmowanie decyzji</span>
+                                    <span>91%</span>
+                                </div>
+                                <div class="progress-container">
+                                    <div class="progress-bar progress-high" style="width: 91%;"></div>
+                                </div>
+                            </div>
+                            <div class="performance-metric">
+                                <div class="metric-header">
+                                    <span>Realizacja strategii</span>
+                                    <span>89%</span>
+                                </div>
+                                <div class="progress-container">
+                                    <div class="progress-bar progress-high" style="width: 89%;"></div>
+                                </div>
+                            </div>
+                            <div class="performance-metric">
+                                <div class="metric-header">
+                                    <span>Rozwój zespołu</span>
+                                    <span>76%</span>
+                                </div>
+                                <div class="progress-container">
+                                    <div class="progress-bar progress-medium" style="width: 76%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="performance-card">
+                        <div class="performance-header">
+                            <div class="performance-avatar">
+                                <img src="https://i.pravatar.cc/150?img=5" alt="Alya Césaire">
+                            </div>
+                            <div class="performance-name">Alya Césaire</div>
+                            <div class="badge badge-primary">Social Media</div>
+                        </div>
+                        <div class="performance-metrics">
+                            <div class="performance-metric">
+                                <div class="metric-header">
+                                    <span>Kreatywność</span>
+                                    <span>88%</span>
+                                </div>
+                                <div class="progress-container">
+                                    <div class="progress-bar progress-high" style="width: 88%;"></div>
+                                </div>
+                            </div>
+                            <div class="performance-metric">
+                                <div class="metric-header">
+                                    <span>Praca zespołowa</span>
+                                    <span>82%</span>
+                                </div>
+                                <div class="progress-container">
+                                    <div class="progress-bar progress-high" style="width: 82%;"></div>
+                                </div>
+                            </div>
+                            <div class="performance-metric">
+                                <div class="metric-header">
+                                    <span>Realizacja zadań</span>
+                                    <span>79%</span>
+                                </div>
+                                <div class="progress-container">
+                                    <div class="progress-bar progress-medium" style="width: 79%;"></div>
+                                </div>
+                            </div>
+                            <div class="performance-metric">
+                                <div class="metric-header">
+                                    <span>Engagement kampanii</span>
+                                    <span>95%</span>
+                                </div>
+                                <div class="progress-container">
+                                    <div class="progress-bar progress-high" style="width: 95%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2>Analiza porównawcza działów</h2>
+                </div>
+                
+                <div class="analysis-charts">
+                    <div class="chart-box">
+                        <div class="chart-title">Średnie wyniki ocen pracowniczych</div>
+                        <div class="chart-container" style="height: 250px;">
+                            <canvas id="ratingsChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-box">
+                        <div class="chart-title">Realizacja KPI według działów</div>
+                        <div class="chart-container" style="height: 250px;">
+                            <canvas id="kpiChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 20px;">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Dział</th>
+                                <th>Średnia ocena</th>
+                                <th>Realizacja KPI</th>
+                                <th>Rotacja</th>
+                                <th>Trend</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Marketing</td>
+                                <td>4.6/5.0</td>
+                                <td>92%</td>
+                                <td>5%</td>
+                                <td><span style="color:green">↑ 4%</span></td>
+                            </tr>
+                            <tr>
+                                <td>IT</td>
+                                <td>4.2/5.0</td>
+                                <td>88%</td>
+                                <td>8%</td>
+                                <td><span style="color:green">↑ 2%</span></td>
+                            </tr>
+                            <tr>
+                                <td>Sprzedaż</td>
+                                <td>4.0/5.0</td>
+                                <td>94%</td>
+                                <td>12%</td>
+                                <td><span style="color:red">↓ 1%</span></td>
+                            </tr>
+                            <tr>
+                                <td>HR</td>
+                                <td>4.5/5.0</td>
+                                <td>90%</td>
+                                <td>3%</td>
+                                <td><span style="color:green">↑ 5%</span></td>
+                            </tr>
+                            <tr>
+                                <td>Finanse</td>
+                                <td>4.3/5.0</td>
+                                <td>96%</td>
+                                <td>4%</td>
+                                <td><span style="color:green">↑ 3%</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="footer">
+                <a href="https://kunimlb.pl" target="_blank">
+                    <img src="https://kunimlb.pl/img/podpis_white.png" alt="Kuni Logo">
+                    <p>Wykonano dla KuniCorp przez KuniMLB</p>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal nowej oceny -->
+    <div class="modal" id="newPerformanceReviewModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Nowa ocena pracownika</h2>
+                <span class="close" onclick="closeModal('newPerformanceReviewModal')">&times;</span>
+            </div>
+            <form id="performanceReviewForm">
+                <div class="form-group">
+                    <label for="employeeSelect">Pracownik</label>
+                    <select id="employeeSelect" class="form-control">
+                        <option value="1">Adrien Agreste</option>
+                        <option value="2">Marinette Kowalska</option>
+                        <option value="3">Gabriel Agreste</option>
+                        <option value="4">Alya Césaire</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Kreatywność</label>
+                    <input type="range" min="0" max="100" value="90" class="form-control" id="creativity">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>0%</span>
+                        <span id="creativityValue">90%</span>
+                        <span>100%</span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Praca zespołowa</label>
+                    <input type="range" min="0" max="100" value="85" class="form-control" id="teamwork">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>0%</span>
+                        <span id="teamworkValue">85%</span>
+                        <span>100%</span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Realizacja zadań</label>
+                    <input type="range" min="0" max="100" value="88" class="form-control" id="taskCompletion">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>0%</span>
+                        <span id="taskCompletionValue">88%</span>
+                        <span>100%</span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="reviewComments">Komentarz</label>
+                    <textarea id="reviewComments" class="form-control" rows="4"></textarea>
+                </div>
+                
+                <div style="text-align: right; margin-top: 20px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('newPerformanceReviewModal')">Anuluj</button>
+                    <button type="submit" class="btn btn-primary">Zapisz ocenę</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Definicja danych dla wykresów
+        const chartData = {
+            departments: {
+                marketing: {
+                    structureLabels: ['Specjaliści ds. marketingu', 'Graficy', 'Kierownicy kampanii', 'Stażyści', 'Social Media'],
+                    structureData: [8, 5, 3, 3, 2],
+                    performanceLabels: ['Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj'],
+                    performanceData: [83, 87, 89, 93, 96],
+                    metrics: {
+                        avgRating: 4.6,
+                        engagementRate: '92%',
+                        projectCompletion: '88%',
+                        avgTenure: 3.2
+                    }
+                },
+                it: {
+                    structureLabels: ['Programiści', 'DevOps', 'QA', 'Analitycy', 'Team Leaderzy'],
+                    structureData: [15, 5, 7, 3, 2],
+                    performanceLabels: ['Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj'],
+                    performanceData: [87, 86, 89, 90, 92],
+                    metrics: {
+                        avgRating: 4.2,
+                        engagementRate: '88%',
+                        projectCompletion: '90%',
+                        avgTenure: 2.8
+                    }
+                },
+                sales: {
+                    structureLabels: ['Handlowcy', 'Key Account Managerowie', 'Asystenci sprzedaży', 'Dyrektorzy regionalni'],
+                    structureData: [10, 4, 2, 2],
+                    performanceLabels: ['Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj'],
+                    performanceData: [79, 82, 85, 87, 91],
+                    metrics: {
+                        avgRating: 4.0,
+                        engagementRate: '89%',
+                        projectCompletion: '94%',
+                        avgTenure: 2.5
+                    }
+                }
+            }
+        };
+        
+        // Referencje do wykresów
+        let structureChart;
+        let performanceChart;
+        let ratingsChart;
+        let kpiChart;
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Inicjalizacja wykresów
+            initCharts();
+            
+            // Obsługa przycisków i modali
+            setupEventListeners();
+            
+            // Symulacja ładowania danych
+            simulateDataLoading();
+        });
+        
+        function initCharts() {
+            // Wykres struktury zatrudnienia
+            const structureCtx = document.getElementById('structureChart').getContext('2d');
+            structureChart = new Chart(structureCtx, {
+                type: 'pie',
+                data: {
+                    labels: chartData.departments.marketing.structureLabels,
+                    datasets: [{
+                        data: chartData.departments.marketing.structureData,
+                        backgroundColor: [
+                            'rgba(63, 81, 181, 0.7)',
+                            'rgba(156, 39, 176, 0.7)',
+                            'rgba(233, 30, 99, 0.7)',
+                            'rgba(103, 58, 183, 0.7)',
+                            'rgba(33, 150, 243, 0.7)'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        }
+                    }
+                }
+            });
+            
+            // Wykres dynamiki wydajności
+            const performanceCtx = document.getElementById('performanceChart').getContext('2d');
+            performanceChart = new Chart(performanceCtx, {
+                type: 'line',
+                data: {
+                    labels: chartData.departments.marketing.performanceLabels,
+                    datasets: [{
+                        label: 'Wydajność zespołu',
+                        data: chartData.departments.marketing.performanceData,
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        fill: false,
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            min: 70,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: 'Wydajność (%)'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Wykres średnich ocen
+            const ratingsCtx = document.getElementById('ratingsChart').getContext('2d');
+            ratingsChart = new Chart(ratingsCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Marketing', 'IT', 'Sprzedaż', 'HR', 'Finanse'],
+                    datasets: [{
+                        label: 'Średnia ocena (0-5)',
+                        data: [4.6, 4.2, 4.0, 4.5, 4.3],
+                        backgroundColor: 'rgba(63, 81, 181, 0.7)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            min: 3.5,
+                            max: 5
+                        }
+                    }
+                }
+            });
+            
+            // Wykres KPI
+            const kpiCtx = document.getElementById('kpiChart').getContext('2d');
+            kpiChart = new Chart(kpiCtx, {
+                type: 'radar',
+                data: {
+                    labels: ['Realizacja celów', 'Efektywność', 'Rozwój umiejętności', 'Współpraca', 'Innowacyjność'],
+                    datasets: [
+                        {
+                            label: 'Marketing',
+                            data: [92, 88, 85, 90, 95],
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            pointBackgroundColor: 'rgba(75, 192, 192, 1)'
+                        },
+                        {
+                            label: 'IT',
+                            data: [88, 95, 92, 80, 93],
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            pointBackgroundColor: 'rgba(255, 99, 132, 1)'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            min: 0,
+                            max: 100,
+                            ticks: {
+                                stepSize: 20
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function setupEventListeners() {
+            // Przycisk eksportu raportu
+            document.getElementById('exportReportBtn').addEventListener('click', function() {
+                this.disabled = true;
+                this.innerHTML = '<span class="loading-indicator"></span> Generowanie...';
+                
+                setTimeout(() => {
+                    this.disabled = false;
+                    this.textContent = 'Eksportuj raport';
+                    alert('Raport został pomyślnie wygenerowany i zapisany.');
+                }, 2000);
+            });
+            
+            // Przycisk nowej oceny
+            document.getElementById('newPerformanceReviewBtn').addEventListener('click', function() {
+                document.getElementById('newPerformanceReviewModal').style.display = 'flex';
+            });
+            
+            // Obsługa suwaka kreatywności
+            document.getElementById('creativity').addEventListener('input', function() {
+                document.getElementById('creativityValue').textContent = this.value + '%';
+            });
+            
+            // Obsługa suwaka pracy zespołowej
+            document.getElementById('teamwork').addEventListener('input', function() {
+                document.getElementById('teamworkValue').textContent = this.value + '%';
+            });
+            
+            // Obsługa suwaka realizacji zadań
+            document.getElementById('taskCompletion').addEventListener('input', function() {
+                document.getElementById('taskCompletionValue').textContent = this.value + '%';
+            });
+            
+            // Obsługa formularza oceny
+            document.getElementById('performanceReviewForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Symulacja zapisywania
+                const submitBtn = this.querySelector('button[type="submit"]');
+                const originalText = submitBtn.textContent;
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="loading-indicator"></span> Zapisywanie...';
+                
+                setTimeout(() => {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                    closeModal('newPerformanceReviewModal');
+                    alert('Ocena została zapisana pomyślnie!');
+                }, 1500);
+            });
+            
+            // Przycisk zastosowania filtrów
+            document.getElementById('applyFiltersBtn').addEventListener('click', updateCharts);
+        }
+        
+        function updateCharts() {
+            // Pokazuj indykatory ładowania
+            document.getElementById('structureChartLoading').style.display = 'flex';
+            document.getElementById('performanceChartLoading').style.display = 'flex';
+            
+            const department = document.getElementById('departmentFilter').value;
+            
+            // Symulacja opóźnienia ładowania danych
+            setTimeout(() => {
+                if (department === 'marketing' || department === 'it' || department === 'sales') {
+                    // Aktualizuj metryki
+                    document.getElementById('avgRating').textContent = chartData.departments[department].metrics.avgRating;
+                    document.getElementById('engagementRate').textContent = chartData.departments[department].metrics.engagementRate;
+                    document.getElementById('projectCompletion').textContent = chartData.departments[department].metrics.projectCompletion;
+                    document.getElementById('avgTenure').textContent = chartData.departments[department].metrics.avgTenure;
+                    
+                    // Aktualizuj wykres struktury
+                    structureChart.data.labels = chartData.departments[department].structureLabels;
+                    structureChart.data.datasets[0].data = chartData.departments[department].structureData;
+                    structureChart.update();
+                    
+                    // Aktualizuj wykres wydajności
+                    performanceChart.data.labels = chartData.departments[department].performanceLabels;
+                    performanceChart.data.datasets[0].data = chartData.departments[department].performanceData;
+                    performanceChart.update();
+                }
+                
+                // Ukryj indykatory ładowania
+                document.getElementById('structureChartLoading').style.display = 'none';
+                document.getElementById('performanceChartLoading').style.display = 'none';
+            }, 1000);
+        }
+        
+        function simulateDataLoading() {
+            // Symulacja początkowego ładowania danych
+            setTimeout(() => {
+                document.getElementById('structureChartLoading').style.display = 'none';
+                document.getElementById('performanceChartLoading').style.display = 'none';
+            }, 1500);
+        }
+        
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+        
+        // Zamykanie modali po kliknięciu poza nimi
+        window.addEventListener('click', function(event) {
+            const modals = document.getElementsByClassName('modal');
+            for (let i = 0; i < modals.length; i++) {
+                if (event.target === modals[i]) {
+                    modals[i].style.display = 'none';
+                }
+            }
+        });
+    </script>
+</body>
+</html>
