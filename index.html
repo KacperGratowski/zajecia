@@ -617,7 +617,6 @@
             // Obsługa formularza logowania
             const loginForm = document.getElementById('loginForm');
             
-            // Replace the existing loginForm event listener with this one
             loginForm.addEventListener('submit', function(event) {
                 event.preventDefault();
                 
@@ -650,17 +649,16 @@
                     setTimeout(function() {
                         // Logowanie standardowe
                         if (username === 'admin' && password === 'password123') {
-                            window.location.href = 'dashboard.html';
+                            window.location.href = 'dashboard.html'; // Zmieniono z dashboard.html na dashboard.html
                         } else {
+                            alert('Nieprawidłowa nazwa użytkownika lub hasło.');
                             document.getElementById('loadingOverlay').style.display = 'none';
-                            showAlert('Nieprawidłowa nazwa użytkownika lub hasło.', 'Błąd logowania', 'error');
                         }
                     }, 1500);
                 }
             });
         });
         
-        // Replace the existing socialLogin function with this one
         function socialLogin(provider) {
             // Pokaż animację ładowania
             document.getElementById('loadingOverlay').style.display = 'flex';
@@ -668,24 +666,18 @@
             // Symulacja opóźnienia logowania przez serwis zewnętrzny
             setTimeout(function() {
                 if (provider === 'PornHub') {
+                    alert('Logowanie przez PornHub jest obecnie niedostępne. Proszę wybrać inną metodę logowania.');
                     document.getElementById('loadingOverlay').style.display = 'none';
-                    showAlert('Logowanie przez PornHub jest obecnie niedostępne. Proszę wybrać inną metodę logowania.', 'Błąd logowania', 'error');
                 } else if (provider === 'WolniSlowianie') {
+                    alert('Portal Wolni Słowianie wymaga weryfikacji tożsamości słowiańskiej. Proszę przejść proces weryfikacji.');
                     document.getElementById('loadingOverlay').style.display = 'none';
-                    showAlert('Portal Wolni Słowianie wymaga weryfikacji tożsamości słowiańskiej. Proszę przejść proces weryfikacji.', 'Weryfikacja wymagana', 'warning');
                 } else if (provider === 'BLIK') {
-                    document.getElementById('loadingOverlay').style.display = 'none';
                     promptBlikCode();
                 } else if (provider === 'Przelewy24') {
-                    document.getElementById('loadingOverlay').style.display = 'none';
-                    showConfirm('Czy chcesz kontynuować do serwisu Przelewy24 w celu weryfikacji tożsamości?', 'Przekierowanie', function(confirmed) {
-                        if (confirmed) {
-                            document.getElementById('loadingOverlay').style.display = 'flex';
-                            setTimeout(function() {
-                                window.location.href = 'dashboard.html';
-                            }, 1500);
-                        }
-                    });
+                    alert('Zostaniesz przekierowany do serwisu Przelewy24 w celu weryfikacji tożsamości.');
+                    setTimeout(function() {
+                        window.location.href = 'dashboard.html';
+                    }, 1500);
                 } else {
                     console.log(`Logowanie przez ${provider}`);
                     window.location.href = 'dashboard.html';
@@ -693,27 +685,25 @@
             }, 2000);
         }
         
-        // Replace the existing promptBlikCode function with this one
         function promptBlikCode() {
-            showPrompt('Wprowadź 6-cyfrowy kod BLIK do autoryzacji:', 'BLIK', '', function(blikCode) {
-                if (blikCode !== null) {
-                    if (blikCode.length === 6 && !isNaN(blikCode)) {
-                        showAlert('Weryfikacja BLIK w toku...', 'BLIK', 'info', function() {
-                            document.getElementById('loadingOverlay').style.display = 'flex';
-                            setTimeout(function() {
-                                window.location.href = 'dashboard.html';
-                            }, 2000);
-                        });
-                    } else {
-                        showAlert('Nieprawidłowy kod BLIK. Kod powinien składać się z 6 cyfr.', 'Błąd', 'error');
-                    }
-                }
-            });
+            const blikCode = prompt('Wprowadź 6-cyfrowy kod BLIK do autoryzacji:');
+            
+            if (blikCode && blikCode.length === 6 && !isNaN(blikCode)) {
+                alert('Weryfikacja BLIK w toku...');
+                setTimeout(function() {
+                    window.location.href = 'dashboard.html';
+                }, 2000);
+            } else if (blikCode !== null) {
+                alert('Nieprawidłowy kod BLIK. Kod powinien składać się z 6 cyfr.');
+                document.getElementById('loadingOverlay').style.display = 'none';
+            } else {
+                // User canceled
+                document.getElementById('loadingOverlay').style.display = 'none';
+            }
         }
-
-        // Replace the existing showRegistrationForm function with this one
+        
         function showRegistrationForm() {
-            showAlert('Rejestracja nowych użytkowników jest obecnie niedostępna. Proszę skontaktować się z administratorem systemu.', 'Rejestracja niedostępna', 'warning');
+            alert('Rejestracja nowych użytkowników jest obecnie niedostępna. Proszę skontaktować się z administratorem systemu.');
         }
         
         function miraculous() {
